@@ -15,6 +15,7 @@ namespace APIMoiFood.Services
         Task<dynamic?> Register(RegisterRequest request);
         Task<dynamic?> Login(LoginRequest request);
         Task<dynamic?> ForgotPasswordAsync(string email);
+        Task<dynamic?> VerifyOtpAsync(string email, string otp);
         Task<dynamic?> ResetPasswordAsync(string email, string otp, string newPassword);
     }
 
@@ -122,7 +123,7 @@ namespace APIMoiFood.Services
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null) return false;
 
-            // sinh mã OTP 8 chữ số
+            // mã OTP 8 chữ số
             var otp = new Random().Next(10000000, 99999999).ToString();
 
             // lưu vào cache với thời gian hết hạn 5 phút
@@ -133,6 +134,15 @@ namespace APIMoiFood.Services
 
             return true;
         }
+
+        public async Task<dynamic?> VerifyOtpAsync(string email, string otp)
+        {
+            if (!_cache.TryGetValue($"reset_{email}", out string? cachedOtp))
+                return false;
+
+            return cachedOtp == otp;
+        }
+
 
         public async Task<dynamic?> ResetPasswordAsync(string email, string otp, string newPassword)
         {
@@ -145,16 +155,13 @@ namespace APIMoiFood.Services
                 return false; // sai hoặc hết hạn
             }
 
-            // đổi mật khẩu
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             await _context.SaveChangesAsync();
 
-            // xóa OTP sau khi dùng
             _cache.Remove($"reset_{email}");
 
             return true;
         }
-
 
         private string GenerateRefreshToken()
         {

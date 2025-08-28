@@ -44,13 +44,31 @@ namespace APIMoiFood.Controllers
             return Ok("OTP đặt lại mật khẩu đã gửi về email");
         }
 
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+        {
+            var isValid = await _authService.VerifyOtpAsync(request.Email, request.Otp);
+            if (!isValid)
+                return BadRequest("OTP không hợp lệ hoặc đã hết hạn");
+
+            return Ok("Xác thực OTP thành công. Vui lòng nhập mật khẩu mới.");
+        }
+
+
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
+            if (request.NewPassword != request.ConfirmPassword)
+                return BadRequest("Mật khẩu nhập lại không khớp");
+
             var result = await _authService.ResetPasswordAsync(request.Email, request.Otp, request.NewPassword);
             if (!result) return BadRequest("OTP không hợp lệ hoặc đã hết hạn");
             return Ok("Đặt lại mật khẩu thành công");
         }
+
+
+
+
     }
     public class RegisterRequest
     {
@@ -81,7 +99,11 @@ namespace APIMoiFood.Controllers
         public string Email { get; set; }
         public string Otp { get; set; }
         public string NewPassword { get; set; }
+        public string ConfirmPassword { get; set; }
     }
-
-
+    public class VerifyOtpRequest
+    {
+        public string Email { get; set; }
+        public string Otp { get; set; }
+    }
 }
