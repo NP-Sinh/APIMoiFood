@@ -1,6 +1,7 @@
 ﻿using APIMoiFood.Controllers;
 using APIMoiFood.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,22 +12,28 @@ namespace APIMoiFood.Services
 {
     public interface IAuthService
     {
-        Task<dynamic> Register(RegisterRequest request);
-        Task<dynamic> Login(LoginRequest request);
+        Task<dynamic?> Register(RegisterRequest request);
+        Task<dynamic?> Login(LoginRequest request);
+        Task<dynamic?> ForgotPasswordAsync(string email);
+        Task<dynamic?> ResetPasswordAsync(string email, string otp, string newPassword);
     }
 
     public class AuthService : IAuthService
     {
         private readonly MoiFoodDBContext _context;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
+        private readonly IMemoryCache _cache;
 
-        public AuthService(MoiFoodDBContext context, IConfiguration config)
+        public AuthService(MoiFoodDBContext context, IConfiguration config, IEmailService emailService, IMemoryCache cache)
         {
             _context = context;
             _config = config;
+            _emailService = emailService;
+            _cache = cache;
         }
 
-        public async Task<dynamic> Register(RegisterRequest request)
+        public async Task<dynamic?> Register(RegisterRequest request)
         {
             if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
                 return null;
@@ -46,10 +53,16 @@ namespace APIMoiFood.Services
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return user;
+            return new
+            {
+                message = "Đăng ký thành công",
+                user.UserId,
+                user.Username,
+                user.Email
+            };
         }
 
-        public async Task<dynamic> Login(LoginRequest request)
+        public async Task<dynamic?> Login(LoginRequest request)
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u =>
@@ -104,6 +117,44 @@ namespace APIMoiFood.Services
                 Expiration = tokenDescriptor.Expires ?? DateTime.UtcNow.AddMinutes(30)
             };
         }
+        public async Task<dynamic?> ForgotPasswordAsync(string email)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null) return false;
+
+            // sinh mã OTP 8 chữ số
+            var otp = new Random().Next(10000000, 99999999).ToString();
+
+            // lưu vào cache với thời gian hết hạn 5 phút
+            _cache.Set($"reset_{email}", otp, TimeSpan.FromMinutes(5));
+
+            await _emailService.SendEmailAsync(email, "Mã OTP đặt lại mật khẩu",
+                $"<p>Mã OTP của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
+
+            return true;
+        }
+
+        public async Task<dynamic?> ResetPasswordAsync(string email, string otp, string newPassword)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null) return false;
+
+            // lấy OTP từ cache
+            if (!_cache.TryGetValue($"reset_{email}", out string? cachedOtp) || cachedOtp != otp)
+            {
+                return false; // sai hoặc hết hạn
+            }
+
+            // đổi mật khẩu
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            // xóa OTP sau khi dùng
+            _cache.Remove($"reset_{email}");
+
+            return true;
+        }
+
 
         private string GenerateRefreshToken()
         {
