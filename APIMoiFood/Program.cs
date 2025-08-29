@@ -1,9 +1,10 @@
 ﻿using APIMoiFood.Models.Entities;
-using Microsoft.EntityFrameworkCore;
+using APIMoiFood.Services.Auth;
+using APIMoiFood.Services.Profile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using APIMoiFood.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 
 builder.Services.AddControllers();
