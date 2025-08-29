@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Mail;
 
-namespace APIMoiFood.Services
+namespace APIMoiFood.Services.Auth
 {
     public interface IEmailService
     {

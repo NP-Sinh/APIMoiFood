@@ -7,16 +7,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using static System.Net.WebRequestMethods;
 
-namespace APIMoiFood.Services
+namespace APIMoiFood.Services.Auth
 {
     public interface IAuthService
     {
         Task<dynamic?> Register(RegisterRequest request);
         Task<dynamic?> Login(LoginRequest request);
         Task<dynamic?> ForgotPasswordAsync(string email);
-        Task<dynamic?> VerifyOtpAsync(string email, string otp);
-        Task<dynamic?> ResetPasswordAsync(string email, string otp, string newPassword);
+        Task<dynamic?> VerifyOtpAsync(string otp);
+        Task<dynamic?> ResetPasswordAsync(string newPassword);
+        Task<dynamic?> ResendOtp(string email);
     }
 
     public class AuthService : IAuthService
@@ -33,7 +35,13 @@ namespace APIMoiFood.Services
             _emailService = emailService;
             _cache = cache;
         }
-
+        private string GenerateRefreshToken()
+        {
+            var randomBytes = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+            return Convert.ToBase64String(randomBytes);
+        }
         public async Task<dynamic?> Register(RegisterRequest request)
         {
             if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
@@ -118,16 +126,16 @@ namespace APIMoiFood.Services
                 Expiration = tokenDescriptor.Expires ?? DateTime.UtcNow.AddMinutes(30)
             };
         }
+
         public async Task<dynamic?> ForgotPasswordAsync(string email)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null) return false;
 
-            // mã OTP 8 chữ số
             var otp = new Random().Next(10000000, 99999999).ToString();
 
-            // lưu vào cache với thời gian hết hạn 5 phút
-            _cache.Set($"reset_{email}", otp, TimeSpan.FromMinutes(5));
+            // lưu OTP -> Email
+            _cache.Set($"otp_{otp}", email, TimeSpan.FromMinutes(5));
 
             await _emailService.SendEmailAsync(email, "Mã OTP đặt lại mật khẩu",
                 $"<p>Mã OTP của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
@@ -135,40 +143,49 @@ namespace APIMoiFood.Services
             return true;
         }
 
-        public async Task<dynamic?> VerifyOtpAsync(string email, string otp)
+        public async Task<dynamic?> VerifyOtpAsync(string otp)
         {
-            if (!_cache.TryGetValue($"reset_{email}", out string? cachedOtp))
+            if (!_cache.TryGetValue($"otp_{otp}", out string? email))
                 return false;
 
-            return cachedOtp == otp;
-        }
-
-
-        public async Task<dynamic?> ResetPasswordAsync(string email, string otp, string newPassword)
-        {
-            var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user == null) return false;
-
-            // lấy OTP từ cache
-            if (!_cache.TryGetValue($"reset_{email}", out string? cachedOtp) || cachedOtp != otp)
-            {
-                return false; // sai hoặc hết hạn
-            }
-
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            await _context.SaveChangesAsync();
-
-            _cache.Remove($"reset_{email}");
+            // Đánh dấu email đã verify OTP
+            _cache.Set("verified_email", email, TimeSpan.FromMinutes(5));
 
             return true;
         }
 
-        private string GenerateRefreshToken()
+
+        public async Task<dynamic?> ResetPasswordAsync(string newPassword)
         {
-            var randomBytes = new byte[32];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomBytes);
-            return Convert.ToBase64String(randomBytes);
+            if (!_cache.TryGetValue("verified_email", out string? email))
+                return false;
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null) return false;
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            _cache.Remove("verified_email");
+
+            return true;
         }
+
+        public async Task<dynamic?> ResendOtp(string email)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null) return false;
+
+            var otp = new Random().Next(10000000, 99999999).ToString();
+
+            _cache.Set($"otp_{otp}", email, TimeSpan.FromMinutes(5));
+
+            await _emailService.SendEmailAsync(email, "Mã OTP mới",
+                $"<p>Mã OTP mới của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
+
+            return true;
+        }
+
+
     }
 }

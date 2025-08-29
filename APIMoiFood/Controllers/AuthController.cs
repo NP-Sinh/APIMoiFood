@@ -1,4 +1,4 @@
-﻿using APIMoiFood.Services;
+﻿using APIMoiFood.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIMoiFood.Controllers
@@ -41,19 +41,18 @@ namespace APIMoiFood.Controllers
         {
             var result = await _authService.ForgotPasswordAsync(request.Email);
             if (!result) return BadRequest("Email không tồn tại");
-            return Ok("OTP đặt lại mật khẩu đã gửi về email");
+            return Ok(new { message = "OTP đặt lại mật khẩu đã gửi về email" });
         }
 
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
         {
-            var isValid = await _authService.VerifyOtpAsync(request.Email, request.Otp);
+            var isValid = await _authService.VerifyOtpAsync(request.Otp);
             if (!isValid)
                 return BadRequest("OTP không hợp lệ hoặc đã hết hạn");
 
-            return Ok("Xác thực OTP thành công. Vui lòng nhập mật khẩu mới.");
+            return Ok(new { message = "Xác thực OTP thành công." });
         }
-
 
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
@@ -61,13 +60,21 @@ namespace APIMoiFood.Controllers
             if (request.NewPassword != request.ConfirmPassword)
                 return BadRequest("Mật khẩu nhập lại không khớp");
 
-            var result = await _authService.ResetPasswordAsync(request.Email, request.Otp, request.NewPassword);
-            if (!result) return BadRequest("OTP không hợp lệ hoặc đã hết hạn");
-            return Ok("Đặt lại mật khẩu thành công");
+            var result = await _authService.ResetPasswordAsync(request.NewPassword);
+            if (!result) return BadRequest("Bạn chưa xác thực OTP hoặc OTP đã hết hạn");
+
+            return Ok( new { message = "Đặt lại mật khẩu thành công" });
         }
 
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOtp([FromBody] ForgotPasswordRequest email)
+        {
+            var result = await _authService.ResendOtp(email.Email);
+            if (result == null || result == false)
+                return BadRequest(new { message = "Email không tồn tại hoặc không gửi được OTP" });
 
-
+            return Ok(new { message = "Mã OTP mới đã được gửi" });
+        }
 
     }
     public class RegisterRequest
@@ -92,18 +99,16 @@ namespace APIMoiFood.Controllers
     }
     public class ForgotPasswordRequest
     {
-        public string Email { get; set; }
+        public string Email { get; set; } = null!;
     }
     public class ResetPasswordRequest
     {
-        public string Email { get; set; }
-        public string Otp { get; set; }
-        public string NewPassword { get; set; }
-        public string ConfirmPassword { get; set; }
+        public string NewPassword { get; set; } = null!;
+        public string ConfirmPassword { get; set; } = null!;
     }
+
     public class VerifyOtpRequest
     {
-        public string Email { get; set; }
-        public string Otp { get; set; }
+        public string Otp { get; set; } = null!;
     }
 }

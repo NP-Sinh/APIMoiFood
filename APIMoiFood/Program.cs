@@ -1,9 +1,9 @@
 ﻿using APIMoiFood.Models.Entities;
-using APIMoiFood.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using APIMoiFood.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
