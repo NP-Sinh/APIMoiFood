@@ -47,13 +47,11 @@ namespace APIMoiFood.Services.Auth
             if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
                 return null;
 
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
             var user = new User
             {
                 Username = request.Username,
                 Email = request.Email,
-                PasswordHash = passwordHash,
+                PasswordHash = CommonServices.HashPassword(request.Password),
                 FullName = request.FullName,
                 Role = "User",
                 IsActive = true,
@@ -163,7 +161,7 @@ namespace APIMoiFood.Services.Auth
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null) return false;
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.PasswordHash = CommonServices.HashPassword(newPassword);
             await _context.SaveChangesAsync();
 
             _cache.Remove("verified_email");

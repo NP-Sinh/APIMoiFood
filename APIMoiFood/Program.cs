@@ -1,8 +1,8 @@
 ﻿using APIMoiFood.Models.Entities;
-using APIMoiFood.Models.Mapping;
 using APIMoiFood.Services.Auth;
 using APIMoiFood.Services.Profile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -22,6 +22,10 @@ builder.WebHost.ConfigureKestrel(options =>
     {
         listenOptions.UseHttps(); // HTTPS
     });
+});
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; // 100 MB
 });
 
 // JWT config

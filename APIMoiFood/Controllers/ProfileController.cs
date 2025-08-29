@@ -1,6 +1,8 @@
 ﻿using APIMoiFood.Services.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
 namespace APIMoiFood.Controllers
@@ -32,6 +34,25 @@ namespace APIMoiFood.Controllers
             var updatedUser = await _profileService.UpdateProfile(userId, request);
             return Ok(updatedUser);
         }
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest request)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await _profileService.ChangePassword(userId, request);
+            
+            return Ok(result);
+        }
+        [HttpPost("upload-avatar")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await _profileService.UploadAvatar(userId, request.File);
+            return Ok(result);
+        }
+
+
+
     }
     public class UpdateProfileRequest
     {
@@ -39,5 +60,16 @@ namespace APIMoiFood.Controllers
         public string? Phone { get; set; }
         public string? Avatar { get; set; }
         public string? Address { get; set; }
+    }
+    public class ChangePasswordRequest
+    {
+        public string? OldPassword { get; set; }
+        public string? NewPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
+    }
+    public class UploadAvatarRequest
+    {
+        [Required]
+        public IFormFile File { get; set; }
     }
 }
