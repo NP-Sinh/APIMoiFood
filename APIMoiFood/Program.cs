@@ -1,4 +1,5 @@
 ﻿using APIMoiFood.Models.Entities;
+using APIMoiFood.Models.Mapping;
 using APIMoiFood.Services.Auth;
 using APIMoiFood.Services.Profile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<MoiFoodDBContext>(c =>
         c.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -39,9 +42,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 
 // Add services to the container.
+//builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 

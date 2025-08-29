@@ -8,6 +8,7 @@ namespace APIMoiFood.Services.Profile
     {
         Task<dynamic?> GetProfile(int userId);
         Task<dynamic?> UpdateProfile(int userId, UpdateProfileRequest request);
+        Task<dynamic?> ChangePassword(int userId, UpdateProfileRequest request);
     }
     public class ProfileService : IProfileService
     {
@@ -16,6 +17,7 @@ namespace APIMoiFood.Services.Profile
         {
             _context = context;
         }
+
         public async Task<dynamic?> GetProfile(int userId)
         {
             var data = await _context.Users
@@ -45,6 +47,10 @@ namespace APIMoiFood.Services.Profile
             await _context.SaveChangesAsync();
             return user;
 
+        }
+        public Task<dynamic?> ChangePassword(int userId, UpdateProfileRequest request)
+        {
+            throw new NotImplementedException();
         }
     }
 }
