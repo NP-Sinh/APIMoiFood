@@ -21,14 +21,14 @@ namespace APIMoiFood.Services.Profile
             var data = await _context.Users
                 .Select(x => new
                 {
-                    UsserId = x.UserId,
+                    UserId = x.UserId,
                     FullName = x.FullName,
                     Email = x.Email,
                     Phone = x.Phone,
                     Address = x.Address,
                     Avatar = x.Avatar,
                 })
-                .FirstOrDefaultAsync(x => x.UsserId == userId);
+                .FirstOrDefaultAsync(x => x.UserId == userId);
             return data;
         }
 
@@ -36,10 +36,10 @@ namespace APIMoiFood.Services.Profile
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
 
-            user.FullName = request.FullName ?? user.FullName;
-            user.Phone = request.Phone ?? user.Phone;
-            user.Avatar = request.Avatar ?? user.Avatar;
-            user.Address = request.Address ?? user.Address;
+            user.FullName = request.FullName;
+            user.Phone = request.Phone;
+            user.Avatar = request.Avatar;
+            user.Address = request.Address;
             user.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
