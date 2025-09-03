@@ -16,7 +16,7 @@ namespace APIMoiFood.Services.Auth
         Task<dynamic?> Register(RegisterRequest request);
         Task<dynamic?> Login(LoginRequest request);
         Task<dynamic?> ForgotPasswordAsync(string email);
-        Task<dynamic?> VerifyOtpAsync(string otp);
+        Task<dynamic?> VerifyOtpAsync(string email, string otp);
         Task<dynamic?> ResetPasswordAsync(string newPassword);
         Task<dynamic?> ResendOtp(string email);
     }
@@ -130,10 +130,10 @@ namespace APIMoiFood.Services.Auth
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null) return false;
 
-            var otp = new Random().Next(10000000, 99999999).ToString();
+            var otp = CommonServices.GenerateOTP(8);
 
-            // lưu OTP -> Email
-            _cache.Set($"otp_{otp}", email, TimeSpan.FromMinutes(5));
+            // luôn ghi đè OTP theo email
+            _cache.Set($"otp_{email}", otp, TimeSpan.FromMinutes(5));
 
             await _emailService.SendEmailAsync(email, "Mã OTP đặt lại mật khẩu",
                 $"<p>Mã OTP của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
@@ -141,16 +141,21 @@ namespace APIMoiFood.Services.Auth
             return true;
         }
 
-        public async Task<dynamic?> VerifyOtpAsync(string otp)
+        public async Task<dynamic?> VerifyOtpAsync(string email, string otp)
         {
-            if (!_cache.TryGetValue($"otp_{otp}", out string? email))
+            if (!_cache.TryGetValue($"otp_{email}", out string? cachedOtp))
                 return false;
 
-            // Đánh dấu email đã verify OTP
+            if (cachedOtp != otp)
+                return false;
+
             _cache.Set("verified_email", email, TimeSpan.FromMinutes(5));
+
+            _cache.Remove($"otp_{email}");
 
             return true;
         }
+
 
 
         public async Task<dynamic?> ResetPasswordAsync(string newPassword)
@@ -174,9 +179,9 @@ namespace APIMoiFood.Services.Auth
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
             if (user == null) return false;
 
-            var otp = new Random().Next(10000000, 99999999).ToString();
+            var otp = CommonServices.GenerateOTP(8);
 
-            _cache.Set($"otp_{otp}", email, TimeSpan.FromMinutes(5));
+            _cache.Set($"otp_{email}", otp, TimeSpan.FromMinutes(5));
 
             await _emailService.SendEmailAsync(email, "Mã OTP mới",
                 $"<p>Mã OTP mới của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");

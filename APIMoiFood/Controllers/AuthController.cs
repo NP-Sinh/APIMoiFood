@@ -47,7 +47,7 @@ namespace APIMoiFood.Controllers
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
         {
-            var isValid = await _authService.VerifyOtpAsync(request.Otp);
+            var isValid = await _authService.VerifyOtpAsync(request.Email, request.Otp);
             if (!isValid)
                 return BadRequest("OTP không hợp lệ hoặc đã hết hạn");
 
@@ -109,6 +109,7 @@ namespace APIMoiFood.Controllers
 
     public class VerifyOtpRequest
     {
+        public string Email { get; set; } = null!;
         public string Otp { get; set; } = null!;
     }
 }
