@@ -1,5 +1,8 @@
-﻿using APIMoiFood.Services.Auth;
+﻿using APIMoiFood.Models.DTOs.Auth;
+using APIMoiFood.Models.Entities;
+using APIMoiFood.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace APIMoiFood.Controllers
 {
@@ -40,18 +43,16 @@ namespace APIMoiFood.Controllers
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             var result = await _authService.ForgotPasswordAsync(request.Email);
-            if (!result) return BadRequest("Email không tồn tại");
-            return Ok(new { message = "OTP đặt lại mật khẩu đã gửi về email" });
+
+            return Ok(result);
         }
 
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
         {
             var isValid = await _authService.VerifyOtpAsync(request.Email, request.Otp);
-            if (!isValid)
-                return BadRequest("OTP không hợp lệ hoặc đã hết hạn");
 
-            return Ok(new { message = "Xác thực OTP thành công." });
+            return Ok(isValid);
         }
 
         [HttpPost("reset-password")]
@@ -61,55 +62,26 @@ namespace APIMoiFood.Controllers
                 return BadRequest("Mật khẩu nhập lại không khớp");
 
             var result = await _authService.ResetPasswordAsync(request.NewPassword);
-            if (!result) return BadRequest("Bạn chưa xác thực OTP hoặc OTP đã hết hạn");
 
-            return Ok( new { message = "Đặt lại mật khẩu thành công" });
+            return Ok(result);
         }
 
         [HttpPost("resend-otp")]
         public async Task<IActionResult> ResendOtp([FromBody] ForgotPasswordRequest email)
         {
             var result = await _authService.ResendOtp(email.Email);
-            if (result == null || result == false)
-                return BadRequest(new { message = "Email không tồn tại hoặc không gửi được OTP" });
 
-            return Ok(new { message = "Mã OTP mới đã được gửi" });
+            return Ok(result);
+        }
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var result = await _authService.Logout(userId, request.RefreshToken);
+
+            return Ok(result);
         }
 
-    }
-    public class RegisterRequest
-    {
-        public string Username { get; set; } = null!;
-        public string Email { get; set; } = null!;
-        public string Password { get; set; } = null!;
-        public string? FullName { get; set; }
-    }
-
-    public class LoginRequest
-    {
-        public string UsernameOrEmail { get; set; } = null!;
-        public string Password { get; set; } = null!;
-    }
-
-    public class AuthResponse
-    {
-        public string Token { get; set; } = null!;
-        public string RefreshToken { get; set; } = null!;
-        public DateTime Expiration { get; set; }
-    }
-    public class ForgotPasswordRequest
-    {
-        public string Email { get; set; } = null!;
-    }
-    public class ResetPasswordRequest
-    {
-        public string NewPassword { get; set; } = null!;
-        public string ConfirmPassword { get; set; } = null!;
-    }
-
-    public class VerifyOtpRequest
-    {
-        public string Email { get; set; } = null!;
-        public string Otp { get; set; } = null!;
     }
 }

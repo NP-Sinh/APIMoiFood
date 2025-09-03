@@ -1,4 +1,5 @@
-﻿using APIMoiFood.Services.Profile;
+﻿using APIMoiFood.Models.DTOs.Profile;
+using APIMoiFood.Services.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -53,23 +54,5 @@ namespace APIMoiFood.Controllers
 
 
 
-    }
-    public class UpdateProfileRequest
-    {
-        public string? FullName { get; set; }
-        public string? Phone { get; set; }
-        public string? Avatar { get; set; }
-        public string? Address { get; set; }
-    }
-    public class ChangePasswordRequest
-    {
-        public string? OldPassword { get; set; }
-        public string? NewPassword { get; set; }
-        public string? ConfirmPassword { get; set; }
-    }
-    public class UploadAvatarRequest
-    {
-        [Required]
-        public IFormFile File { get; set; }
     }
 }

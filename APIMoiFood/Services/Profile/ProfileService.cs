@@ -1,4 +1,5 @@
 ﻿using APIMoiFood.Controllers;
+using APIMoiFood.Models.DTOs.Profile;
 using APIMoiFood.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -55,16 +56,25 @@ namespace APIMoiFood.Services.Profile
             var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
 
             if(!CommonServices.VerifyPassword(request.OldPassword, user.PasswordHash))
-                return new { Message = "Mật khẩu cũ không đúng" };
+                return new 
+                {
+                    Message = "Mật khẩu cũ không đúng" 
+                };
 
             if (request.NewPassword != request.ConfirmPassword)
-                return new { Message = "Mật khẩu xác nhận không khớp" };
+                return new 
+                { 
+                    Message = "Mật khẩu xác nhận không khớp" 
+                };
 
             user.PasswordHash = CommonServices.HashPassword(request.NewPassword);
             user.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
-            return new { Message = "Đổi mật khẩu thành công" };
+            return new 
+            { 
+                Message = "Đổi mật khẩu thành công" 
+            };
         }
 
         public async Task<dynamic?> UploadAvatar(int userId, IFormFile file)
@@ -90,7 +100,11 @@ namespace APIMoiFood.Services.Profile
 
             await _context.SaveChangesAsync();
 
-            return new { Message = "Upload ảnh thành công", AvatarUrl = user.Avatar };
+            return new 
+            { 
+                Message = "Upload ảnh thành công", 
+                AvatarUrl = user.Avatar 
+            };
         }
     }
 }

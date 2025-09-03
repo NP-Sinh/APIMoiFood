@@ -1,4 +1,5 @@
 ﻿using APIMoiFood.Controllers;
+using APIMoiFood.Models.DTOs.Auth;
 using APIMoiFood.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -15,6 +16,7 @@ namespace APIMoiFood.Services.Auth
     {
         Task<dynamic?> Register(RegisterRequest request);
         Task<dynamic?> Login(LoginRequest request);
+        Task<dynamic?> Logout(int userId, string refreshToken);
         Task<dynamic?> ForgotPasswordAsync(string email);
         Task<dynamic?> VerifyOtpAsync(string email, string otp);
         Task<dynamic?> ResetPasswordAsync(string newPassword);
@@ -128,7 +130,14 @@ namespace APIMoiFood.Services.Auth
         public async Task<dynamic?> ForgotPasswordAsync(string email)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user == null) return false;
+            if (user == null)
+            {
+                return new
+                {
+                    statusCode = 400,
+                    message = "Người dùng không tồn tại",
+                };
+            }
 
             var otp = CommonServices.GenerateOTP(8);
 
@@ -138,22 +147,33 @@ namespace APIMoiFood.Services.Auth
             await _emailService.SendEmailAsync(email, "Mã OTP đặt lại mật khẩu",
                 $"<p>Mã OTP của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
 
-            return true;
+            return new 
+            {
+                statusCode = 200,
+                message = "OTP đặt lại mật khẩu đã gửi về email",
+            };
         }
 
         public async Task<dynamic?> VerifyOtpAsync(string email, string otp)
         {
-            if (!_cache.TryGetValue($"otp_{email}", out string? cachedOtp))
-                return false;
-
-            if (cachedOtp != otp)
-                return false;
+            if (!_cache.TryGetValue($"otp_{email}", out string? cachedOtp) || cachedOtp != otp)
+            {
+                return new
+                {
+                    statusCode = 400,
+                    message = "OTP không hợp lệ hoặc đã hết hạn",
+                };
+            }    
 
             _cache.Set("verified_email", email, TimeSpan.FromMinutes(5));
 
             _cache.Remove($"otp_{email}");
 
-            return true;
+            return new
+            {
+                statusCode = 200,
+                message = "Xác thực OTP thành công."
+            };
         }
 
 
@@ -161,23 +181,48 @@ namespace APIMoiFood.Services.Auth
         public async Task<dynamic?> ResetPasswordAsync(string newPassword)
         {
             if (!_cache.TryGetValue("verified_email", out string? email))
-                return false;
+            {
+                return new
+                {
+                    statusCode = 400,
+                    message = "Bạn chưa xác thực OTP hoặc OTP đã hết hạn",
+                };
+            }    
 
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user == null) return false;
+            if (user == null)
+            {
+                return new
+                {
+                    statusCode = 400,
+                    message = "Người dùng không tồn tại",
+                };
+            };
 
             user.PasswordHash = CommonServices.HashPassword(newPassword);
             await _context.SaveChangesAsync();
 
             _cache.Remove("verified_email");
 
-            return true;
+            return new
+            {
+                statusCode = 200,
+                message = "Đặt lại mật khẩu thành công."
+            };
         }
 
         public async Task<dynamic?> ResendOtp(string email)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if (user == null) return false;
+            if (user == null)
+            {
+                return new
+                {
+                    statusCode = 400,
+                    message = "Người dùng không tồn tại",
+                };
+            }
+            ;
 
             var otp = CommonServices.GenerateOTP(8);
 
@@ -186,9 +231,36 @@ namespace APIMoiFood.Services.Auth
             await _emailService.SendEmailAsync(email, "Mã OTP mới",
                 $"<p>Mã OTP mới của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
 
-            return true;
+            return new 
+            { 
+                statusCode = 200,
+                message = "OTP mới đã được gửi",
+            };
         }
+        // Logout bằng cách thu hồi refresh token
+        public async Task<dynamic?> Logout(int userId, string refreshToken)
+        {
+            var token = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.UserId == userId && rt.RefreshToken1 == refreshToken);
 
+            if (token == null)
+            {
+                return new
+                {
+                    statusCode = 400,
+                    message = "Token không hợp lệ",
+                };
+            }
+
+            token.IsRevoked = true;
+            await _context.SaveChangesAsync();
+
+            return new
+            { 
+                statusCode = 200,
+                message = "Đăng xuất thành công"
+            };
+        }
 
     }
 }
