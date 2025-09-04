@@ -1,6 +1,7 @@
 ﻿using APIMoiFood.Models.DTOs.Auth;
 using APIMoiFood.Models.Entities;
-using APIMoiFood.Services.Auth;
+using APIMoiFood.Services.AuthService;
+using APIMoiFood.Services.EmailService;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 

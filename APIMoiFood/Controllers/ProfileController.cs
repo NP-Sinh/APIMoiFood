@@ -1,5 +1,5 @@
 ﻿using APIMoiFood.Models.DTOs.Profile;
-using APIMoiFood.Services.Profile;
+using APIMoiFood.Services.ProfileService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

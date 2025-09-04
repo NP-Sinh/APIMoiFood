@@ -1,6 +1,7 @@
 ﻿using APIMoiFood.Controllers;
 using APIMoiFood.Models.DTOs.Auth;
 using APIMoiFood.Models.Entities;
+using APIMoiFood.Services.EmailService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -10,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using static System.Net.WebRequestMethods;
 
-namespace APIMoiFood.Services.Auth
+namespace APIMoiFood.Services.AuthService
 {
     public interface IAuthService
     {

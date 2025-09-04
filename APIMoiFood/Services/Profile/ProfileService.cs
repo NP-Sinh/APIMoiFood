@@ -4,7 +4,7 @@ using APIMoiFood.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace APIMoiFood.Services.Profile
+namespace APIMoiFood.Services.ProfileService
 {
     public interface IProfileService
     {
