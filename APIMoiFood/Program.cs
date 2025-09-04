@@ -1,8 +1,9 @@
 ﻿using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
-using APIMoiFood.Services.Auth;
+using APIMoiFood.Services.AuthService;
 using APIMoiFood.Services.CategoryService;
-using APIMoiFood.Services.Profile;
+using APIMoiFood.Services.EmailService;
+using APIMoiFood.Services.ProfileService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
