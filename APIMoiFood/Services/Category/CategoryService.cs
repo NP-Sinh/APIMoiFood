@@ -4,6 +4,7 @@ using APIMoiFood.Models.Mapping;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace APIMoiFood.Services.CategoryService
 {
@@ -26,8 +27,8 @@ namespace APIMoiFood.Services.CategoryService
         }
         public async Task<dynamic> GetAll()
         {
-            var data = await _context.Categories.
-                Select(c => new
+            var data = await _context.Categories.Where(c => (bool)!c.IsActive)
+                .Select(c => new
                 {
                     CategoryId = c.CategoryId,
                     Name = c.Name,
@@ -82,6 +83,7 @@ namespace APIMoiFood.Services.CategoryService
                 else
                 {
                     var newCategory = _mapper.Map<Category>(request);
+                    newCategory.IsActive = false;
                     _context.Categories.Add(newCategory);
                     await _context.SaveChangesAsync();
 
@@ -116,8 +118,8 @@ namespace APIMoiFood.Services.CategoryService
                         Message = "Danh mục không tồn tại"
                     };
                 }
-
-                _context.Categories.Remove(category);
+                category.IsActive = true;
+                
                 await _context.SaveChangesAsync();
 
                 return new
