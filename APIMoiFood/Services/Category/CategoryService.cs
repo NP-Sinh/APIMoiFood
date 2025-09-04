@@ -27,7 +27,7 @@ namespace APIMoiFood.Services.CategoryService
         }
         public async Task<dynamic> GetAll()
         {
-            var data = await _context.Categories.Where(c => (bool)!c.IsActive)
+            var data = await _context.Categories.Where(c => c.IsActive == false)
                 .Select(c => new
                 {
                     CategoryId = c.CategoryId,
