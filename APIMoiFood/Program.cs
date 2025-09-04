@@ -1,9 +1,12 @@
 ﻿using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
+
 using APIMoiFood.Services.AuthService;
 using APIMoiFood.Services.CategoryService;
 using APIMoiFood.Services.EmailService;
+using APIMoiFood.Services.FoodService;
 using APIMoiFood.Services.ProfileService;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +59,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IFoodService, FoodService>();
 
 
 builder.Services.AddControllers();
