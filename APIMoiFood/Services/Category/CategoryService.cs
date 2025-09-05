@@ -14,6 +14,7 @@ namespace APIMoiFood.Services.CategoryService
         Task<dynamic> GetAll();
         Task<dynamic?> GetById(int id);
         Task<dynamic> Delete(int id);
+        Task<dynamic> Restore(int id);
 
     }
     public class CategoryService : ICategoryService
@@ -41,22 +42,13 @@ namespace APIMoiFood.Services.CategoryService
         public async Task<dynamic?> GetById(int id)
         {
             var data = await _context.Categories
-                .Where(c => c.CategoryId == id)
+                .Where(c => c.CategoryId == id && c.IsActive == false)
                 .Select(c => new
                 {
                     CategoryId = c.CategoryId,
                     Name = c.Name,
                     Description = c.Description
                 }).FirstOrDefaultAsync();
-
-            if(data == null)
-            {
-                return new
-                {
-                    StatusCode = 404,
-                    Message = "Danh mục không tồn tại"
-                };
-            }
 
             return data;
         }
@@ -108,7 +100,9 @@ namespace APIMoiFood.Services.CategoryService
         {
             try
             {
-                var category = await _context.Categories.FindAsync(id);
+                var category = await _context.Categories
+                    .Include(c => c.Foods)
+                    .FirstOrDefaultAsync(c => c.CategoryId == id);
 
                 if (category == null)
                 {
@@ -120,12 +114,53 @@ namespace APIMoiFood.Services.CategoryService
                 }
                 category.IsActive = true;
                 
+                foreach (var food in category.Foods)
+                {
+                    food.IsActive = true;
+                }
+
                 await _context.SaveChangesAsync();
 
                 return new
                 {
                     StatusCode = 200,
                     Message = "Xóa danh mục thành công",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    StatusCode = 500,
+                    Message = $"Lỗi server: {ex.Message}"
+                };
+            }
+        }
+        public async Task<dynamic> Restore(int id)
+        {
+            try
+            {
+                var category = await _context.Categories
+                    .Include(c => c.Foods)
+                    .FirstOrDefaultAsync(c => c.CategoryId == id);
+                if (category == null)
+                {
+                    return new
+                    {
+                        StatusCode = 404,
+                        Message = "Danh mục không tồn tại"
+                    };
+                }
+                category.IsActive = false;
+                foreach (var food in category.Foods)
+                {
+                    food.IsActive = false;
+                }
+                await _context.SaveChangesAsync();
+                return new
+                {
+                    StatusCode = 200,
+                    Message = "Khôi phục danh mục thành công",
                 };
             }
             catch (Exception ex)
