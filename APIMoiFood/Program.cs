@@ -2,6 +2,7 @@
 using APIMoiFood.Models.Mapping;
 
 using APIMoiFood.Services.AuthService;
+using APIMoiFood.Services.CartService;
 using APIMoiFood.Services.CategoryService;
 using APIMoiFood.Services.EmailService;
 using APIMoiFood.Services.FoodService;
@@ -60,6 +61,7 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IFoodService, FoodService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 
 builder.Services.AddControllers();

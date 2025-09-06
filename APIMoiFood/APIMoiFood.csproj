@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Models\DTOs\Order\" />
     <Folder Include="wwwroot\images\foods\" />
     <Folder Include="wwwroot\images\users\" />
   </ItemGroup>
