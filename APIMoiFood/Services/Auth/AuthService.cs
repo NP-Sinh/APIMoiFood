@@ -71,34 +71,19 @@ namespace APIMoiFood.Services.AuthService
         public async Task<dynamic?> Login(LoginRequest request)
         {
             var user = await _context.Users
-                .FirstOrDefaultAsync(u =>
-                    u.Username == request.UsernameOrEmail ||
-                    u.Email == request.UsernameOrEmail);
+               .FirstOrDefaultAsync(u =>
+                   u.Username == request.UsernameOrEmail ||
+                   u.Email == request.UsernameOrEmail);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
 
-            var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "User");
-            var refreshToken = _jwtService.GenerateRefreshToken();
-
-            var refreshTokenEntity = new RefreshToken
-            {
-                UserId = user.UserId,
-                RefreshToken1 = refreshToken,
-                ExpiryDate = DateTime.UtcNow.AddDays(7),
-                CreatedAt = DateTime.UtcNow,
-                IsRevoked = false
-            };
-            _context.RefreshTokens.Add(refreshTokenEntity);
+            var response = GenerateAuthResponse(user);
             await _context.SaveChangesAsync();
 
-            return new AuthResponse
-            {
-                Token = jwtToken,
-                RefreshToken = refreshToken,
-                Expiration = DateTime.UtcNow.AddMinutes(15)
-            };
+            return response;
         }
+
         public async Task<dynamic?> ForgotPasswordAsync(string email)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
@@ -231,6 +216,30 @@ namespace APIMoiFood.Services.AuthService
                 message = "Đăng xuất thành công"
             };
         }
+
+        private AuthResponse GenerateAuthResponse(User user)
+        {
+            var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "User");
+            var refreshToken = _jwtService.GenerateRefreshToken();
+
+            var refreshEntity = new RefreshToken
+            {
+                UserId = user.UserId,
+                RefreshToken1 = refreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                CreatedAt = DateTime.UtcNow,
+                IsRevoked = false
+            };
+            _context.RefreshTokens.Add(refreshEntity);
+
+            return new AuthResponse
+            {
+                Token = jwtToken,
+                RefreshToken = refreshToken,
+                Expiration = DateTime.UtcNow.AddMinutes(15)
+            };
+        }
+
 
     }
 }
