@@ -45,6 +45,7 @@ namespace APIMoiFood.Controllers
         }
 
         [HttpPost("set-available-status")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> SetAvailableStatus(int id, bool isAvailable)
         {
             var result = await _foodService.SetAvailableStatus(id, isAvailable);
