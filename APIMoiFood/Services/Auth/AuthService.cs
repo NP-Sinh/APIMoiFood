@@ -41,13 +41,6 @@ namespace APIMoiFood.Services.AuthService
             _jwtService = jwtService;
             _cache = cache;
         }
-        private string GenerateRefreshToken()
-        {
-            var randomBytes = new byte[32];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomBytes);
-            return Convert.ToBase64String(randomBytes);
-        }
         public async Task<dynamic?> Register(RegisterRequest request)
         {
             if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
@@ -103,7 +96,7 @@ namespace APIMoiFood.Services.AuthService
             {
                 Token = jwtToken,
                 RefreshToken = refreshToken,
-                Expiration = DateTime.UtcNow.AddMinutes(30)
+                Expiration = DateTime.UtcNow.AddMinutes(15)
             };
         }
         public async Task<dynamic?> ForgotPasswordAsync(string email)
@@ -154,8 +147,6 @@ namespace APIMoiFood.Services.AuthService
                 message = "Xác thực OTP thành công."
             };
         }
-
-
 
         public async Task<dynamic?> ResetPasswordAsync(string newPassword)
         {
