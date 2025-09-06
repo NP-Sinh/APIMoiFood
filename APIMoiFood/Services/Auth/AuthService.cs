@@ -2,6 +2,7 @@
 using APIMoiFood.Models.DTOs.Auth;
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Services.EmailService;
+using APIMoiFood.Services.JwtService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -29,13 +30,15 @@ namespace APIMoiFood.Services.AuthService
         private readonly MoiFoodDBContext _context;
         private readonly IConfiguration _config;
         private readonly IEmailService _emailService;
+        private readonly IJwtService _jwtService;
         private readonly IMemoryCache _cache;
 
-        public AuthService(MoiFoodDBContext context, IConfiguration config, IEmailService emailService, IMemoryCache cache)
+        public AuthService(MoiFoodDBContext context, IConfiguration config, IEmailService emailService, IJwtService jwtService, IMemoryCache cache)
         {
             _context = context;
             _config = config;
             _emailService = emailService;
+            _jwtService = jwtService;
             _cache = cache;
         }
         private string GenerateRefreshToken()
@@ -79,35 +82,12 @@ namespace APIMoiFood.Services.AuthService
                     u.Username == request.UsernameOrEmail ||
                     u.Email == request.UsernameOrEmail);
 
-            if (user == null) return null;
-
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
+            var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "User");
+            var refreshToken = _jwtService.GenerateRefreshToken();
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role ?? "User")
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(30),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature
-                ),
-                Issuer = _config["Jwt:Issuer"],
-                Audience = _config["Jwt:Audience"]
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var jwtToken = tokenHandler.WriteToken(token);
-
-            var refreshToken = GenerateRefreshToken();
             var refreshTokenEntity = new RefreshToken
             {
                 UserId = user.UserId,
@@ -116,7 +96,6 @@ namespace APIMoiFood.Services.AuthService
                 CreatedAt = DateTime.UtcNow,
                 IsRevoked = false
             };
-
             _context.RefreshTokens.Add(refreshTokenEntity);
             await _context.SaveChangesAsync();
 
@@ -124,10 +103,9 @@ namespace APIMoiFood.Services.AuthService
             {
                 Token = jwtToken,
                 RefreshToken = refreshToken,
-                Expiration = tokenDescriptor.Expires ?? DateTime.UtcNow.AddMinutes(30)
+                Expiration = DateTime.UtcNow.AddMinutes(30)
             };
         }
-
         public async Task<dynamic?> ForgotPasswordAsync(string email)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
