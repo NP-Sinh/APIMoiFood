@@ -1,6 +1,7 @@
 ﻿using APIMoiFood.Models.DTOs.Cart;
 using APIMoiFood.Models.DTOs.Category;
 using APIMoiFood.Models.DTOs.Food;
+using APIMoiFood.Models.DTOs.Order;
 using APIMoiFood.Models.Entities;
 using AutoMapper;
 
@@ -20,15 +21,29 @@ namespace APIMoiFood.Models.Mapping
 
             // cart mapping
             CreateMap<Cart, CartMap>()
-             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems));
+             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems)).ReverseMap();
 
             CreateMap<CartItem, CartItemMap>()
                 .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food != null ? src.Food.Name : null))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Food != null ? src.Food.Price : 0))
                 .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Food != null ? src.Quantity * src.Food.Price : 0));
 
-            CreateMap<CartRequest, Cart>();
-            CreateMap<CartItemRequest, CartItem>();
+            CreateMap<CartRequest, Cart>().ReverseMap();
+            CreateMap<CartItemRequest, CartItem>().ReverseMap();
+
+            // Order mapping
+            CreateMap<Order, OrderMap>()
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems))
+                .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments)).ReverseMap();
+
+            CreateMap<OrderItem, OrderItemMap>().ReverseMap();
+
+            CreateMap<Payment, PaymentMap>()
+                .ForMember(dest => dest.Method, opt => opt.MapFrom(src => src.Method.Name))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.PaymentStatus)).ReverseMap();
+            
+            CreateMap<OrderRequest, Order>().ReverseMap();
+            CreateMap<OrderItemRequest, OrderItem>().ReverseMap();
 
         }
 

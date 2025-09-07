@@ -6,6 +6,7 @@ using APIMoiFood.Services.CategoryService;
 using APIMoiFood.Services.EmailService;
 using APIMoiFood.Services.FoodService;
 using APIMoiFood.Services.JwtService;
+using APIMoiFood.Services.OrderService;
 using APIMoiFood.Services.ProfileService;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -63,6 +64,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IFoodService, FoodService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 
 builder.Services.AddControllers();

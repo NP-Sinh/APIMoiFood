@@ -1,6 +1,6 @@
-﻿namespace APIMoiFood.Models.Mapping
+﻿namespace APIMoiFood.Models.DTOs.Order
 {
-    public class OrderItemMap
+    public class OrderItemRequest
     {
         public int FoodId { get; set; }
         public int Quantity { get; set; }
