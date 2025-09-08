@@ -81,8 +81,13 @@ namespace APIMoiFood.Services.OrderService
 
                     foreach (var ci in cart.CartItems)
                     {
-                        totalAmount += ci.Food.Price * ci.Quantity;
-                       var oi = _mapper.Map<OrderItem>(ci);
+                       totalAmount += ci.Food.Price * ci.Quantity;
+                       var oi = new OrderItem
+                       {
+                            FoodId = ci.FoodId,
+                            Quantity = ci.Quantity,
+                            Price = ci.Food.Price,
+                       };
                         orderItems.Add(oi);
                     }
                     _context.CartItems.RemoveRange(cart.CartItems);
