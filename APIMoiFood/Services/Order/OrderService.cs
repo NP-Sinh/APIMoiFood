@@ -90,9 +90,12 @@ namespace APIMoiFood.Services.OrderService
                 else
                 {
                     // đặt món trực tiếp
+                    var foodIds = request.OrderItems.Select(o => o.FoodId).ToList();
+                    var foods = await _context.Foods.Where(f => foodIds.Contains(f.FoodId)).ToListAsync();
+
                     foreach (var item in request.OrderItems)
                     {
-                        var food = await _context.Foods.FindAsync(item.FoodId);
+                        var food = foods.First(f => f.FoodId == item.FoodId);
                         totalAmount += food.Price * item.Quantity;
 
                         var oi = new OrderItem
