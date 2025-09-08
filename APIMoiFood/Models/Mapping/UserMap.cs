@@ -1,4 +1,6 @@
-﻿namespace APIMoiFood.Models.Mapping
+﻿using APIMoiFood.Models.Entities;
+
+namespace APIMoiFood.Models.Mapping
 {
     public class UserMap
     {
@@ -25,5 +27,13 @@
         public DateTime? CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
+
+        public virtual List<Notification> Notifications { get; set; } = new List<Notification>();
+
+        public virtual List<Order> Orders { get; set; } = new List<Order>();
+
+        public virtual List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+        public virtual List<Review> Reviews { get; set; } = new List<Review>();
     }
 }

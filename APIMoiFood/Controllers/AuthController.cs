@@ -43,7 +43,7 @@ namespace APIMoiFood.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            var result = await _authService.ForgotPasswordAsync(request.Email);
+            var result = await _authService.ForgotPasswordAsync(request);
 
             return Ok(result);
         }
@@ -51,7 +51,7 @@ namespace APIMoiFood.Controllers
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
         {
-            var isValid = await _authService.VerifyOtpAsync(request.Email, request.Otp);
+            var isValid = await _authService.VerifyOtpAsync(request);
 
             return Ok(isValid);
         }
@@ -62,7 +62,7 @@ namespace APIMoiFood.Controllers
             if (request.NewPassword != request.ConfirmPassword)
                 return BadRequest("Mật khẩu nhập lại không khớp");
 
-            var result = await _authService.ResetPasswordAsync(request.NewPassword);
+            var result = await _authService.ResetPasswordAsync(request);
 
             return Ok(result);
         }
@@ -70,7 +70,7 @@ namespace APIMoiFood.Controllers
         [HttpPost("resend-otp")]
         public async Task<IActionResult> ResendOtp([FromBody] ForgotPasswordRequest email)
         {
-            var result = await _authService.ResendOtp(email.Email);
+            var result = await _authService.ResendOtp(email);
 
             return Ok(result);
         }
@@ -79,7 +79,7 @@ namespace APIMoiFood.Controllers
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var result = await _authService.Logout(userId, request.RefreshToken);
+            var result = await _authService.Logout(userId, request);
 
             return Ok(result);
         }
