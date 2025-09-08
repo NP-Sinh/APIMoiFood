@@ -44,7 +44,7 @@ namespace APIMoiFood.Services.OrderService
             {
                 StatusCode = 200,
                 Message = "Thành công",
-                Order = _mapper.Map<List<OrderMap>>(orders),
+                Order = orders,
             };
         }
         public async Task<dynamic> GetOrderDetails(int userId, int orderId)
@@ -60,7 +60,7 @@ namespace APIMoiFood.Services.OrderService
             {
                 StatusCode = 200,
                 Message = "Thành công",
-                Order = _mapper.Map<OrderMap>(order)
+                Order = order
             };
         }
         public async Task<dynamic> CreateOrder(int userId, OrderRequest request)
@@ -82,13 +82,7 @@ namespace APIMoiFood.Services.OrderService
                     foreach (var ci in cart.CartItems)
                     {
                         totalAmount += ci.Food.Price * ci.Quantity;
-                        var oi = new OrderItem
-                        {
-                            FoodId = ci.FoodId,
-                            Quantity = ci.Quantity,
-                            Price = ci.Food.Price,
-
-                        };
+                       var oi = _mapper.Map<OrderItem>(ci);
                         orderItems.Add(oi);
                     }
                     _context.CartItems.RemoveRange(cart.CartItems);
@@ -132,7 +126,6 @@ namespace APIMoiFood.Services.OrderService
                         new Payment
                         {
                             MethodId = request.PaymentMethodId,
-                            Method = await _context.PaymentMethods.FindAsync(request.PaymentMethodId),
                             Amount = totalAmount,
                             PaymentStatus = "pending",
                             CreatedAt = DateTime.Now,

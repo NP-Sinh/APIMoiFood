@@ -1,7 +1,9 @@
-﻿using APIMoiFood.Models.DTOs.Cart;
+﻿using APIMoiFood.Models.DTOs.Auth;
+using APIMoiFood.Models.DTOs.Cart;
 using APIMoiFood.Models.DTOs.Category;
 using APIMoiFood.Models.DTOs.Food;
 using APIMoiFood.Models.DTOs.Order;
+using APIMoiFood.Models.DTOs.Payment;
 using APIMoiFood.Models.Entities;
 using AutoMapper;
 
@@ -11,41 +13,73 @@ namespace APIMoiFood.Models.Mapping
     {
         public AutoMapperProfile()
         {
-            CreateMap<Category, CategoryMap>().ReverseMap();
-            CreateMap<CategoryRequest, Category>();
+            CreateMap<User, UserMap>().ReverseMap();
 
-            // food mapping with category name
-            CreateMap<Food, FoodMap>()
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
-            CreateMap<FoodRequest, Food>();
+            // RefreshToken <-> RefreshTokenMap
+            CreateMap<RefreshToken, RefreshTokenMap>()
+                .ForMember(dest => dest.RefreshToken1, opt => opt.MapFrom(src => src.RefreshToken1))
+                .ForMember(dest => dest.ExpiryDate, opt => opt.MapFrom(src => src.ExpiryDate))
+                .ForMember(dest => dest.TokenId, opt => opt.MapFrom(src => src.TokenId))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.IsRevoked, opt => opt.MapFrom(src => src.IsRevoked))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ReverseMap();
 
-            // cart mapping
+            // RefreshToken <-> RefreshTokenMap
+            CreateMap<RefreshToken, RefreshTokenMap>().ReverseMap();
+
+            // RegisterRequest -> User
+            CreateMap<RegisterRequest, User>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "User"))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+
+            // Category mapping
+            CreateMap<Category, CategoryMap>()
+                .ForMember(dest => dest.Foods, opt => opt.MapFrom(src => src.Foods))
+                .ReverseMap();
+
+            CreateMap<CategoryRequest, Category>().ReverseMap();
+
+            // Food mapping
+            CreateMap<Food, FoodMap>().ReverseMap();
+
+            CreateMap<FoodRequest, Food>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => false))
+                .ForMember(dest => dest.IsAvailable, opt => opt.MapFrom(src => true)).ReverseMap();
+
+            // Cart mapping
             CreateMap<Cart, CartMap>()
-             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems)).ReverseMap();
+                .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems))
+                .ReverseMap();
 
-            CreateMap<CartItem, CartItemMap>()
-                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food != null ? src.Food.Name : null))
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Food != null ? src.Food.Price : 0))
-                .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Food != null ? src.Quantity * src.Food.Price : 0));
+            CreateMap<CartItemRequest, CartItem>()
+                .ForMember(dest => dest.CartItemId, opt => opt.Ignore())
+                .ForMember(dest => dest.Cart, opt => opt.Ignore())
+                .ForMember(dest => dest.Food, opt => opt.Ignore());
 
-            CreateMap<CartRequest, Cart>().ReverseMap();
-            CreateMap<CartItemRequest, CartItem>().ReverseMap();
+            // Mapping CartRequest -> Cart
+            CreateMap<CartRequest, Cart>()
+                .ForMember(dest => dest.CartId, opt => opt.Ignore())
+                .ForMember(dest => dest.CartItems, opt => opt.Ignore())
+                .ForMember(dest => dest.User, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
-            // Order mapping
-            CreateMap<Order, OrderMap>()
-                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems))
-                .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments)).ReverseMap();
+            // CartItem <-> CartItemMap
+            CreateMap<CartItem, CartItemMap>().ReverseMap();
 
-            CreateMap<OrderItem, OrderItemMap>()
-                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food.Name)).ReverseMap();
+            CreateMap<OrderItemRequest, OrderItem>()
+           .ForMember(dest => dest.OrderId, opt => opt.Ignore());
 
-            CreateMap<Payment, PaymentMap>()
-                .ForMember(dest => dest.Method, opt => opt.MapFrom(src => src.Method.Name))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.PaymentStatus)).ReverseMap();
-            
-            CreateMap<OrderRequest, Order>().ReverseMap();
-            CreateMap<OrderItemRequest, OrderItem>().ReverseMap();
-
+            // Map Order -> OrderMap
+            CreateMap<Order, OrderMap>();
+            CreateMap<OrderItem, OrderItemMap>();
+            CreateMap<Payment, PaymentMap>();
+            CreateMap<PaymentMethod, PaymentMethodMap>();
         }
 
     }

@@ -91,12 +91,7 @@ namespace APIMoiFood.Services.FoodService
 
                 if(data != null)
                 {
-                    data.Name = request.Name;
-                    data.Description = request.Description;
-                    data.Price = request.Price;
-                    data.ImageUrl = request.ImageUrl;
-                    data.CategoryId = request.CategoryId;
-                    data.IsAvailable = request.IsAvailable;
+                    _mapper.Map(request, data);
                     data.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
@@ -111,10 +106,7 @@ namespace APIMoiFood.Services.FoodService
                 else
                 {
                     var newFood = _mapper.Map<Food>(request);
-                    newFood.IsAvailable = true;
-                    newFood.IsActive = false;
-                    newFood.CreatedAt = DateTime.Now;
-                    newFood.UpdatedAt = DateTime.Now;
+
                     _context.Foods.Add(newFood);
                     await _context.SaveChangesAsync();
                     return new
@@ -143,6 +135,8 @@ namespace APIMoiFood.Services.FoodService
                 return new { StatusCode = 404, Message = "Món ăn không tồn tại" };
             }
             food.IsAvailable = isAvailable;
+            food.UpdatedAt = DateTime.Now;
+
             await _context.SaveChangesAsync();
             return new
             {
@@ -159,6 +153,8 @@ namespace APIMoiFood.Services.FoodService
             }
 
             food.IsActive = isActive;
+            food.UpdatedAt = DateTime.Now;
+
             await _context.SaveChangesAsync();
 
             return new

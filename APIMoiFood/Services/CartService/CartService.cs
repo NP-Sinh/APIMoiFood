@@ -13,10 +13,6 @@ namespace APIMoiFood.Services.CartService
         Task<dynamic> AddToCart(int userId, CartItemRequest request);
         Task<dynamic> UpdateQuantity(int userId, CartItemRequest request);
         Task<dynamic> RemoveFromCart(int userId, int foodId);
-
-        // admin
-        // Task<dynamic> GetAllCarts();
-        // Task<dynamic> GetCartByUserId(int userId);
     }
     public class CartService : ICartService
     {
@@ -34,16 +30,32 @@ namespace APIMoiFood.Services.CartService
                 .ThenInclude(ci => ci.Food)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            var cartMap = _mapper.Map<CartMap>(cart);
+            var itemsWithTotal = cart.CartItems.Select(ci => new
+            {
+                ci.CartItemId,
+                ci.FoodId,
+                ci.Quantity,
+                Price = ci.Food?.Price ?? 0,
+                ItemTotal = (ci.Food?.Price ?? 0) * ci.Quantity
+            }).ToList();
+
+            decimal totalPrice = itemsWithTotal.Sum(i => i.ItemTotal);
+
             return new
             {
                 StatusCode = 200,
                 Message = "Thành công",
-                DataCart = cartMap,
-                TotalItems = cartMap.TotalPrice
+                DataCart = new
+                {
+                    cart.CartId,
+                    cart.UserId,
+                    Items = itemsWithTotal
+                },
+                TotalPrice = totalPrice
             };
         }
-        public  async Task<dynamic> AddToCart(int userId, CartItemRequest request)
+
+        public async Task<dynamic> AddToCart(int userId, CartItemRequest request)
         {
             try
             {
@@ -54,35 +66,37 @@ namespace APIMoiFood.Services.CartService
 
                 if(cart == null)
                 {
-                    cart = new Cart
-                    {
-                        UserId = userId,
-                        CreatedAt = DateTime.Now,
-                        CartItems = new List<CartItem>()
-                    };
+                    var user = new User { UserId = userId };
+                    cart = _mapper.Map<Cart>(user);
 
                     _context.Carts.Add(cart);
                 }
 
                 var cartItem = cart.CartItems.FirstOrDefault(ci => ci.FoodId == request.FoodId);
-                
-                if(cartItem != null)
+
+                var food = await _context.Foods.FindAsync(request.FoodId);
+
+                if (cartItem != null)
                 {
                     cartItem.Quantity += request.Quantity;
                 }
                 else
                 {
                     var newItem = _mapper.Map<CartItem>(request);
+
                     newItem.Cart = cart;
+                    newItem.Food = food;
                     cart.CartItems.Add(newItem);
                 }
 
+                decimal totalPrice = cart.CartItems.Sum(ci => (ci.Quantity * (ci.Food?.Price ?? 0)));
                 await _context.SaveChangesAsync();
                 return new
                 {
                     StatusCode = 200,
                     Message = "Thêm vào giỏ hàng thành công",
                     Data = _mapper.Map<CartMap>(cart),
+                    TotalPrice = totalPrice
 
                 };
             }
@@ -116,13 +130,14 @@ namespace APIMoiFood.Services.CartService
                 {
                     cartItem.Quantity = request.Quantity;
                 }
-
+                decimal totalPrice = cart.CartItems.Sum(ci => (ci.Quantity * (ci.Food?.Price ?? 0)));
                 await _context.SaveChangesAsync();
                 return new
                 {
                     StatusCode = 200,
                     Message = "Cập nhật số lượng thành công",
                     Data = _mapper.Map<CartMap>(cart),
+                    TotalPrice = totalPrice
                 };
 
             }
@@ -146,13 +161,18 @@ namespace APIMoiFood.Services.CartService
             var cartItem = cart.CartItems.FirstOrDefault(ci => ci.FoodId == foodId);
 
             _context.CartItems.Remove(cartItem);
-
             await _context.SaveChangesAsync();
+
+            decimal totalPrice = cart.CartItems
+               .Where(ci => ci.FoodId != foodId)
+               .Sum(ci => ci.Quantity * (ci.Food?.Price ?? 0));
+
             return new
             {
                 StatusCode = 200,
                 Message = "Xoá khỏi giỏ hàng thành công",
                 Data = _mapper.Map<CartMap>(cart),
+                TotalPrice = totalPrice,
             };
         }
     }
