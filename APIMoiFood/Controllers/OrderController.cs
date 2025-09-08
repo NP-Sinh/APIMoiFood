@@ -37,6 +37,26 @@ namespace APIMoiFood.Controllers
             var result = await _orderService.GetOrderDetails(userId, orderId);
             return Ok(result);
         }
-
+        [HttpGet("get-all-order")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllOrders(string? status)
+        {
+            var result = await _orderService.GetAllOrders(status);
+            return Ok(result);
+        }
+        [HttpGet("get-order-by-id")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetOrderById(int orderId)
+        {
+            var result = await _orderService.GetOrderById(orderId);
+            return Ok(result);
+        }
+        [HttpPost("update-order-status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, string newStatus)
+        {
+            var result = await _orderService.UpdateOrderStatus(orderId, newStatus);
+            return Ok(result);
+        }
     }
 }

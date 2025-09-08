@@ -12,6 +12,12 @@ namespace APIMoiFood.Services.OrderService
         Task<dynamic> CreateOrder(int userId, OrderRequest request);
         Task<dynamic> GetOrdersByUserId(int userId);
         Task<dynamic> GetOrderDetails(int userId, int orderId);
+
+
+        // Admin
+        Task<dynamic> GetAllOrders(string? status);
+        Task<dynamic> GetOrderById(int orderId);
+        Task<dynamic> UpdateOrderStatus(int orderId, string newStatus);
     }
     public class OrderService : IOrderService
     {
@@ -157,6 +163,65 @@ namespace APIMoiFood.Services.OrderService
                     Message = "Lỗi server: " + ex.Message
                 };
             }
+        }
+        // Admin
+        public async Task<dynamic> GetAllOrders(string? status)
+        {
+            var query = _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Food)
+                .Include(o => o.Payments)
+                .ThenInclude(p => p.Method)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(o => o.OrderStatus == status);
+            }
+
+            var orders = await query
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return new
+            {
+                StatusCode = 200,
+                Message = "Thành công",
+                Orders = _mapper.Map<List<OrderMap>>(orders),
+            };
+        }
+        public async Task<dynamic> GetOrderById(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Food)
+                .Include(o => o.Payments)
+                .ThenInclude(p => p.Method)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            return new
+            {
+                StatusCode = 200,
+                Message = "Thành công",
+                Order = _mapper.Map<OrderMap>(order)
+            };
+        }
+        public async Task<dynamic> UpdateOrderStatus(int orderId, string newStatus)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId);
+            
+            order.OrderStatus = newStatus;
+            order.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return new
+            {
+                StatusCode = 200,
+                Message = "Cập nhật trạng thái đơn hàng thành công",
+                Order = _mapper.Map<OrderMap>(order)
+            };
         }
     }
 }
