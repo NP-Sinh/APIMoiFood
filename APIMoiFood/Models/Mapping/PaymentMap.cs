@@ -2,20 +2,9 @@
 {
     public class PaymentMap
     {
-        public int PaymentId { get; set; }
-
-        public int OrderId { get; set; }
-
-        public int MethodId { get; set; }
-
+        public string Method { get; set; } = null!; 
         public decimal Amount { get; set; }
-
+        public string Status { get; set; } = null!; 
         public string? TransactionId { get; set; }
-
-        public string PaymentStatus { get; set; } = null!;
-
-        public DateTime? CreatedAt { get; set; }
-
-        public DateTime? UpdatedAt { get; set; }
     }
 }
