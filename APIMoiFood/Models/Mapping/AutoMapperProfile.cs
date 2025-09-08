@@ -36,7 +36,8 @@ namespace APIMoiFood.Models.Mapping
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems))
                 .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments)).ReverseMap();
 
-            CreateMap<OrderItem, OrderItemMap>().ReverseMap();
+            CreateMap<OrderItem, OrderItemMap>()
+                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food.Name)).ReverseMap();
 
             CreateMap<Payment, PaymentMap>()
                 .ForMember(dest => dest.Method, opt => opt.MapFrom(src => src.Method.Name))

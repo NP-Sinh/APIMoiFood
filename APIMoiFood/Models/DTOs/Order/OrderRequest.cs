@@ -7,5 +7,6 @@
         public string? Note { get; set; }
         public List<OrderItemRequest> OrderItems { get; set; } = new List<OrderItemRequest>();
         public int PaymentMethodId { get; set; }
+        public bool FromCart { get; set; }
     }
 }
