@@ -7,6 +7,8 @@
         public int? OrderId { get; set; }
 
         public int? FoodId { get; set; }
+        // FoodName
+        public string? FoodName { get; set; }
 
         public int Quantity { get; set; }
 

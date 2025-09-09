@@ -96,6 +96,7 @@ namespace APIMoiFood.Models.Mapping
 
             CreateMap<OrderItem, OrderItemMap>()
                 .ForMember(dest => dest.FoodId, opt => opt.MapFrom(src => src.FoodId))
+                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food.Name))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Food.Price))
                 .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note))
