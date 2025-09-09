@@ -82,12 +82,8 @@ namespace APIMoiFood.Services.OrderService
                     foreach (var ci in cart.CartItems)
                     {
                        totalAmount += ci.Food.Price * ci.Quantity;
-                       var oi = new OrderItem
-                       {
-                            FoodId = ci.FoodId,
-                            Quantity = ci.Quantity,
-                            Price = ci.Food.Price,
-                       };
+
+                        var oi = _mapper.Map<OrderItem>(ci);
                         orderItems.Add(oi);
                     }
                     _context.CartItems.RemoveRange(cart.CartItems);
@@ -103,14 +99,7 @@ namespace APIMoiFood.Services.OrderService
                         var food = foods.First(f => f.FoodId == item.FoodId);
                         totalAmount += food.Price * item.Quantity;
 
-                        var oi = new OrderItem
-                        {
-                            FoodId = item.FoodId,
-                            Quantity = item.Quantity,
-                            Price = food.Price,
-                            Note = item.Note,
-
-                        };
+                        var oi = _mapper.Map<OrderItem>(item);
                         orderItems.Add(oi);
                     }
                 }
