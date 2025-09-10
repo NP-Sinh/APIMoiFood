@@ -145,7 +145,7 @@ namespace APIMoiFood.Services.OrderService
                 {
                     StatusCode = 500,
                     Message = "Lỗi server: " + ex.Message,
-                    InnerError = ex.InnerException?.Message
+                    //InnerError = ex.InnerException?.Message
                 };
             }
         }
