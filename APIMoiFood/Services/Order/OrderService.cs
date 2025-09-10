@@ -152,29 +152,37 @@ namespace APIMoiFood.Services.OrderService
         // Admin
         public async Task<dynamic> GetAllOrders(string? status)
         {
-            var query = _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Food)
-                .Include(o => o.Payments)
-                .ThenInclude(p => p.Method)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                query = query.Where(o => o.OrderStatus == status);
-            }
-
-            var orders = await query
+            var orders = await _context.Orders
+                .AsQueryable()
+                .Where(o => string.IsNullOrEmpty(status) || o.OrderStatus == status)
                 .OrderByDescending(o => o.CreatedAt)
+                .Select(o => new
+                {
+                    o.OrderId,
+                    UserName = o.User.FullName,
+                    o.TotalAmount,
+                    o.OrderStatus,
+                    o.PaymentStatus,
+                    o.CreatedAt,
+                    ItemCount = o.OrderItems.Count,
+                    Food = o.OrderItems.Select(oi => new
+                    {
+                        oi.Food.Name,
+                        oi.Quantity,
+                        oi.Price
+                    }),
+                    PaymentMethods = o.Payments.Select(p => new
+                    {
+                        p.Method.Name,
+                        p.Amount,
+                        p.PaymentStatus
+                    })
+                })
                 .ToListAsync();
 
-            return new
-            {
-                StatusCode = 200,
-                Message = "Thành công",
-                Orders = _mapper.Map<List<OrderMap>>(orders),
-            };
+
+            return orders;
+            
         }
         public async Task<dynamic> GetOrderById(int orderId)
         {

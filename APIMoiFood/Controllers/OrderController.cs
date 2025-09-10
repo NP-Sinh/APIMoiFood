@@ -8,7 +8,7 @@ namespace APIMoiFood.Controllers
 {
     [Route("moifood/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class OrderController : Controller
     {
         private readonly IOrderService _orderService;
@@ -38,21 +38,21 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
         [HttpGet("get-all-order")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllOrders(string? status)
         {
             var result = await _orderService.GetAllOrders(status);
             return Ok(result);
         }
         [HttpGet("get-order-by-id")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetOrderById(int orderId)
         {
             var result = await _orderService.GetOrderById(orderId);
             return Ok(result);
         }
         [HttpPost("update-order-status")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateOrderStatus(int orderId, string newStatus)
         {
             var result = await _orderService.UpdateOrderStatus(orderId, newStatus);
