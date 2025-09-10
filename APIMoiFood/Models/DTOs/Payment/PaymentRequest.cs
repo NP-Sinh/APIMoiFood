@@ -3,6 +3,7 @@
     public class PaymentRequest
     {
         public int OrderId { get; set; }
+        public int MethodId { get; set; }
         public long Amount { get; set; }
     }
 }

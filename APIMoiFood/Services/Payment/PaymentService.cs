@@ -1,4 +1,5 @@
-﻿using APIMoiFood.Models.Entities;
+﻿using APIMoiFood.Models.DTOs.Payment;
+using APIMoiFood.Models.Entities;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,7 +7,7 @@ namespace APIMoiFood.Services.PaymentService
 {
     public interface IPaymentService
     {
-        Task<dynamic> CreatePayment(int orderId, int methodId, decimal amount);
+        Task<Payment> CreatePaymentAsync(PaymentRequest request);
         Task<dynamic> ProcessPayment(int paymentId, string? transactionId = null);
     }
     public class PaymentService : IPaymentService
@@ -18,22 +19,10 @@ namespace APIMoiFood.Services.PaymentService
             _context = context;
             _mapper = mapper;
         }
-        public async Task<dynamic> CreatePayment(int orderId, int methodId, decimal amount)
+        public async Task<Payment> CreatePaymentAsync(PaymentRequest request)
         {
-            var paymentMethod = await _context.PaymentMethods.FindAsync(methodId);
+            var payment = _mapper.Map<Payment>(request);
 
-            if (paymentMethod == null) return false;
-
-            var payment = new Payment
-            {
-                OrderId = orderId,
-                MethodId = methodId,
-                Method = paymentMethod,
-                Amount = amount,
-                PaymentStatus = "pending",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 

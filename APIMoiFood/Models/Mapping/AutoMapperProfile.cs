@@ -80,45 +80,38 @@ namespace APIMoiFood.Models.Mapping
                 .ForMember(dest => dest.Note, opt => opt.Ignore())
                 .ReverseMap();
 
-            // Map Order -> OrderMap
-            CreateMap<Order, OrderMap>()
-                .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems))
-                .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
-                .ForMember(dest => dest.DeliveryAddress, opt => opt.MapFrom(src => src.DeliveryAddress))
-                .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note))
-                .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
-                .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => "Pending"))
-                .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => "Pending"))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ReverseMap();
-
-            CreateMap<OrderItem, OrderItemMap>()
-                .ForMember(dest => dest.FoodId, opt => opt.MapFrom(src => src.FoodId))
-                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food.Name))
-                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Food.Price))
-                .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note))
-                .ReverseMap();
-
             // OrderItemRequest -> OrderItem
             CreateMap<OrderItemRequest, OrderItem>()
-                .ForMember(dest => dest.OrderItemId, opt => opt.Ignore())
-                .ForMember(dest => dest.OrderId, opt => opt.Ignore())
-                .ForMember(dest => dest.FoodId, opt => opt.MapFrom(src => src.FoodId))
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
-                .ForMember(dest => dest.Note, opt => opt.Ignore()).ReverseMap();
-
-            CreateMap<Payment, PaymentMap>()
-                .ForMember(dest => dest.MethodId, opt => opt.MapFrom(src => src.MethodId))
-                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
-                .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => "Pending"))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.PaymentId, opt => opt.MapFrom(src => src.PaymentId))
-                .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.OrderId))
+                .ForMember(dest => dest.Price, opt => opt.Ignore())
                 .ReverseMap();
+
+            // OrderRequest -> Order
+            CreateMap<OrderRequest, Order>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore()) 
+                .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderItems, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => "pending"))
+                .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => "pending"))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ReverseMap();
+
+            // Entity -> DTO
+            CreateMap<OrderItem, OrderItemMap>()
+                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food.Name));
+
+            CreateMap<Order, OrderMap>()
+                .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems))
+                .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments));
+
+            CreateMap<Payment, PaymentMap>();
+
+            CreateMap<PaymentRequest, Payment>()
+                .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => "pending"))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
+                .ReverseMap();
+
             CreateMap<PaymentMethod, PaymentMethodMap>();
         }
 
