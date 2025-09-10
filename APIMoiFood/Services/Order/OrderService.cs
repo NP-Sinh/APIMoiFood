@@ -2,6 +2,7 @@
 using APIMoiFood.Models.DTOs.Payment;
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
+using APIMoiFood.Services.PaymentService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,10 +24,12 @@ namespace APIMoiFood.Services.OrderService
     {
         public readonly MoiFoodDBContext _context;
         public readonly IMapper _mapper;
-        public OrderService(MoiFoodDBContext context, IMapper mapper)
+        public readonly IPaymentService _paymentService;
+        public OrderService(MoiFoodDBContext context, IMapper mapper, IPaymentService paymentService)
         {
             _context = context;
             _mapper = mapper;
+            _paymentService = paymentService;
         }
         public async Task<dynamic> GetOrdersByUserId(int userId)
         {
@@ -84,6 +87,8 @@ namespace APIMoiFood.Services.OrderService
                        totalAmount += ci.Food.Price * ci.Quantity;
 
                         var oi = _mapper.Map<OrderItem>(ci);
+                        oi.Price = ci.Food.Price;
+
                         orderItems.Add(oi);
                     }
                     _context.CartItems.RemoveRange(cart.CartItems);
@@ -100,36 +105,28 @@ namespace APIMoiFood.Services.OrderService
                         totalAmount += food.Price * item.Quantity;
 
                         var oi = _mapper.Map<OrderItem>(item);
+                        oi.Price = food.Price;
+
                         orderItems.Add(oi);
                     }
                 }
 
-                var order = new Order
-                {
-                    UserId = userId,
-                    DeliveryAddress = request.DeliveryAddress,
-                    Note = request.Note,
-                    TotalAmount = totalAmount,
-                    OrderStatus = "pending",
-                    PaymentStatus = "pending",
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    OrderItems = orderItems,
-                    Payments = new List<Payment>()
-                    {
-                        new Payment
-                        {
-                            MethodId = request.PaymentMethodId,
-                            Amount = totalAmount,
-                            PaymentStatus = "pending",
-                            CreatedAt = DateTime.Now,
-                            UpdatedAt = DateTime.Now,
-                        }
-                    }
-                };
+                var order = _mapper.Map<Order>(request);
+                order.UserId = userId;
+                order.TotalAmount = totalAmount;
+                order.OrderItems = orderItems;
+                
 
-                _context.Orders.Add(order);
+                await _context.Orders.AddAsync(order);
                 await _context.SaveChangesAsync();
+
+                var paymentRequest = new PaymentRequest
+                {
+                    OrderId = order.OrderId,
+                    MethodId = request.PaymentMethodId,
+                    Amount = (long)totalAmount
+                };
+                var payment = await _paymentService.CreatePaymentAsync(paymentRequest);
 
                 await transaction.CommitAsync();
 
@@ -147,7 +144,8 @@ namespace APIMoiFood.Services.OrderService
                 return new
                 {
                     StatusCode = 500,
-                    Message = "Lỗi server: " + ex.Message
+                    Message = "Lỗi server: " + ex.Message,
+                    InnerError = ex.InnerException?.Message
                 };
             }
         }
@@ -207,7 +205,9 @@ namespace APIMoiFood.Services.OrderService
             {
                 StatusCode = 200,
                 Message = "Cập nhật trạng thái đơn hàng thành công",
-                Order = _mapper.Map<OrderMap>(order)
+                UserId = order.UserId,
+                OrderId = order.OrderId,
+                OrderStatus = order.OrderStatus
             };
         }
     }
