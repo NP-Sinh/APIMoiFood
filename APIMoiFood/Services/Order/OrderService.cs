@@ -13,6 +13,7 @@ namespace APIMoiFood.Services.OrderService
         Task<dynamic> CreateOrder(int userId, OrderRequest request);
         Task<dynamic> GetOrdersByUserId(int userId);
         Task<dynamic> GetOrderDetails(int userId, int orderId);
+        Task<dynamic> ConfirmReceived(int userId, int orderId);
 
 
         // Admin
@@ -148,6 +149,28 @@ namespace APIMoiFood.Services.OrderService
                     //InnerError = ex.InnerException?.Message
                 };
             }
+        }
+        public async Task<dynamic> ConfirmReceived(int userId, int orderId)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
+
+            order.OrderStatus = "Completed";
+
+            if(order.Payments.Any(p => p.Method.Name == "COD"))
+            {
+                order.PaymentStatus = "Paid";
+            }
+
+            order.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return new
+            {
+                StatusCode = 200,
+                Message = "Xác nhận đã nhận hàng thành công",
+                OrderId = order.OrderId,
+                OrderStatus = order.OrderStatus, 
+                PaymentStatus = order.PaymentStatus
+            };
         }
         // Admin
         public async Task<dynamic> GetAllOrders(string? status)

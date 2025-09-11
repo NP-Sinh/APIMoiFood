@@ -25,6 +25,7 @@ namespace APIMoiFood.Services.PaymentMethodService
         public async Task<dynamic> GetAllPaymentMethods()
         {
             var methods = await _context.PaymentMethods
+                .OrderBy(m => m.MethodId)
                 .Select(m => new
                 {
                     m.MethodId,
@@ -54,14 +55,14 @@ namespace APIMoiFood.Services.PaymentMethodService
                 {
                     data.Name = request.Name;
                     await _context.SaveChangesAsync();
-                    return _mapper.Map<PaymentMethodMap>(data);
+                    return data;
                 }   
                 else
                 {
                     var newMethod = _mapper.Map<PaymentMethod>(request);
                     _context.PaymentMethods.Add(newMethod);
                     await _context.SaveChangesAsync();
-                    return _mapper.Map<PaymentMethodMap>(newMethod);
+                    return newMethod;
                 }
             }
             catch (Exception ex)

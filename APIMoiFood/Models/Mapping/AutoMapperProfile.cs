@@ -113,6 +113,7 @@ namespace APIMoiFood.Models.Mapping
                 .ReverseMap();
 
             CreateMap<PaymentMethod, PaymentMethodMap>();
+            CreateMap<PaymentMethodRequest, PaymentMethod>();
         }
 
     }
