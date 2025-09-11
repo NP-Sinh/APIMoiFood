@@ -7,8 +7,10 @@ using APIMoiFood.Services.EmailService;
 using APIMoiFood.Services.FoodService;
 using APIMoiFood.Services.JwtService;
 using APIMoiFood.Services.OrderService;
+using APIMoiFood.Services.Payment.VnpayService;
 using APIMoiFood.Services.PaymentMethodService;
 using APIMoiFood.Services.PaymentService;
+using APIMoiFood.Services.PaymentService.VnpayService;
 using APIMoiFood.Services.ProfileService;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -69,6 +71,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IVnPayService, VnpayService>();
 
 
 builder.Services.AddControllers();
