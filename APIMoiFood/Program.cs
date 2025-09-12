@@ -7,7 +7,6 @@ using APIMoiFood.Services.EmailService;
 using APIMoiFood.Services.FoodService;
 using APIMoiFood.Services.JwtService;
 using APIMoiFood.Services.OrderService;
-using APIMoiFood.Services.Payment.VnpayService;
 using APIMoiFood.Services.PaymentMethodService;
 using APIMoiFood.Services.PaymentService;
 using APIMoiFood.Services.PaymentService.VnpayService;
