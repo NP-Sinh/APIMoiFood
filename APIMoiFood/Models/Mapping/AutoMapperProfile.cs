@@ -4,6 +4,7 @@ using APIMoiFood.Models.DTOs.Category;
 using APIMoiFood.Models.DTOs.Food;
 using APIMoiFood.Models.DTOs.Order;
 using APIMoiFood.Models.DTOs.Payment;
+using APIMoiFood.Models.DTOs.ReviewRequest;
 using APIMoiFood.Models.Entities;
 using AutoMapper;
 
@@ -114,6 +115,10 @@ namespace APIMoiFood.Models.Mapping
 
             CreateMap<PaymentMethod, PaymentMethodMap>();
             CreateMap<PaymentMethodRequest, PaymentMethod>();
+
+            // Review mapping
+            CreateMap<Review, ReviewMap>().ReverseMap();
+            CreateMap<ReviewRequest, Review>().ReverseMap();
         }
 
     }

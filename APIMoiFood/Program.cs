@@ -11,7 +11,7 @@ using APIMoiFood.Services.PaymentMethodService;
 using APIMoiFood.Services.PaymentService;
 using APIMoiFood.Services.PaymentService.VnpayService;
 using APIMoiFood.Services.ProfileService;
-
+using APIMoiFood.Services.ReviewService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -70,6 +70,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IVnPayService, VnpayService>();
 
 
