@@ -119,6 +119,10 @@ namespace APIMoiFood.Models.Mapping
             // Review mapping
             CreateMap<Review, ReviewMap>().ReverseMap();
             CreateMap<ReviewRequest, Review>().ReverseMap();
+
+            // Notification mapping
+            CreateMap<Notification, NotificationMap>().ReverseMap();
+
         }
 
     }

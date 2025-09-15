@@ -38,6 +38,7 @@ public partial class MoiFoodDBContext : DbContext
     public virtual DbSet<Review> Reviews { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<GlobalNotification> GlobalNotifications { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Connection");
@@ -257,6 +258,23 @@ public partial class MoiFoodDBContext : DbContext
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
             entity.Property(e => e.Username).HasMaxLength(50);
         });
+
+        modelBuilder.Entity<GlobalNotification>(entity =>
+        {
+            entity.HasKey(e => e.GlobalNotificationId);
+            entity.Property(e => e.Title)
+                  .IsRequired()
+                  .HasMaxLength(200);
+            entity.Property(e => e.Message)
+                  .IsRequired()
+                  .HasMaxLength(1000);
+            entity.Property(e => e.NotificationType)
+                  .HasMaxLength(50)
+                  .HasDefaultValue("System");
+            entity.Property(e => e.CreatedAt)
+                  .HasDefaultValueSql("(getdate())");
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

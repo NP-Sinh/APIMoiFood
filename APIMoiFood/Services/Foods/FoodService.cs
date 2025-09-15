@@ -1,6 +1,7 @@
 ﻿using APIMoiFood.Models.DTOs.Food;
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
+using APIMoiFood.Services.NotificationService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,10 +21,12 @@ namespace APIMoiFood.Services.FoodService
     {
         private readonly MoiFoodDBContext _context;
         private readonly IMapper _mapper;
-        public FoodService(MoiFoodDBContext context, IMapper mapper)
+        private readonly INotificationService _notificationService;
+        public FoodService(MoiFoodDBContext context, IMapper mapper, INotificationService notificationService)
         {
             _context = context;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
         public async Task<dynamic> GetAll(bool? isAvailable, bool? isActive)
         {
@@ -145,6 +148,11 @@ namespace APIMoiFood.Services.FoodService
 
                     _context.Foods.Add(newFood);
                     await _context.SaveChangesAsync();
+
+                    await _notificationService.SendGlobalNotification("Món mới",
+                        $"Món {newFood.Name} đã được thêm vào thực đơn với giá {newFood.Price}. Hãy cùng khám phá ngay!",
+                        "NewFood");
+                    
                     return new
                     {
                         StatusCode = 201,
@@ -159,7 +167,8 @@ namespace APIMoiFood.Services.FoodService
                 return new 
                 { 
                     StatusCode = 500,
-                    Message = $"Lỗi server: {ex.Message}"
+                    Message = $"Lỗi server: {ex.Message}",
+                    Inner = ex.InnerException?.Message
                 };
             }
         }

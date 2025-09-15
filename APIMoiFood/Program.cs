@@ -6,6 +6,8 @@ using APIMoiFood.Services.CategoryService;
 using APIMoiFood.Services.EmailService;
 using APIMoiFood.Services.FoodService;
 using APIMoiFood.Services.JwtService;
+using APIMoiFood.Services.NotificationHub;
+using APIMoiFood.Services.NotificationService;
 using APIMoiFood.Services.OrderService;
 using APIMoiFood.Services.PaymentMethodService;
 using APIMoiFood.Services.PaymentService;
@@ -72,6 +74,7 @@ builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IVnPayService, VnpayService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
 builder.Services.AddControllers();
@@ -79,6 +82,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -91,6 +95,7 @@ if (app.Environment.IsDevelopment())
 
 // Cho phép truy cập file tĩnh (wwwroot/images/...)
 app.UseStaticFiles();
+app.MapHub<NotificationHub>("/hubs/notification");
 
 app.UseHttpsRedirection();
 
