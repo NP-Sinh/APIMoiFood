@@ -6,7 +6,6 @@ using APIMoiFood.Services.CategoryService;
 using APIMoiFood.Services.EmailService;
 using APIMoiFood.Services.FoodService;
 using APIMoiFood.Services.JwtService;
-using APIMoiFood.Services.NotificationHub;
 using APIMoiFood.Services.NotificationService;
 using APIMoiFood.Services.OrderService;
 using APIMoiFood.Services.PaymentMethodService;
