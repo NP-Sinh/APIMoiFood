@@ -27,7 +27,6 @@ namespace APIMoiFood.Services.PaymentService
 
         public async Task<PaymentResult> CreatePaymentAsync(PaymentRequest request)
         {
-            // Lưu Payment trước
             var payment = new Payment
             {
                 OrderId = request.OrderId,
@@ -41,14 +40,15 @@ namespace APIMoiFood.Services.PaymentService
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
-            // Nếu là MoMo thì gọi sandbox API
+            // Nếu là MoMo
             if (request.MethodId == 1)
             {
                 var payUrl = await _momo.CreatePayment(
                     amount: request.Amount,
                     orderInfo: $"Thanh toán đơn {request.OrderId}",
                     returnUrl: request.ReturnUrl,
-                    notifyUrl: request.NotifyUrl);
+                    notifyUrl: request.NotifyUrl
+                );
 
                 return new PaymentResult
                 {
