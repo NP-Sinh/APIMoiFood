@@ -3,8 +3,10 @@ using APIMoiFood.Models.DTOs.Payment;
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
 using APIMoiFood.Services.PaymentService;
+using APIMoiFood.Services.PaymentService.MomoService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace APIMoiFood.Services.OrderService
 {
@@ -26,11 +28,16 @@ namespace APIMoiFood.Services.OrderService
         public readonly MoiFoodDBContext _context;
         public readonly IMapper _mapper;
         public readonly IPaymentService _paymentService;
-        public OrderService(MoiFoodDBContext context, IMapper mapper, IPaymentService paymentService)
+        private readonly IMomoService _momoService;
+        private readonly MomoSettings _momoSettings;
+        public OrderService(MoiFoodDBContext context, IMapper mapper, IPaymentService paymentService, IMomoService momoService, IOptions<MomoSettings> momoSettings)
         {
             _context = context;
             _mapper = mapper;
             _paymentService = paymentService;
+            _momoService = momoService;
+            _momoSettings = momoSettings.Value;
+
         }
         public async Task<dynamic> GetOrdersByUserId(int userId)
         {
@@ -85,7 +92,7 @@ namespace APIMoiFood.Services.OrderService
 
                     foreach (var ci in cart.CartItems)
                     {
-                       totalAmount += ci.Food.Price * ci.Quantity;
+                        totalAmount += ci.Food.Price * ci.Quantity;
 
                         var oi = _mapper.Map<OrderItem>(ci);
                         oi.Price = ci.Food.Price;
@@ -116,18 +123,23 @@ namespace APIMoiFood.Services.OrderService
                 order.UserId = userId;
                 order.TotalAmount = totalAmount;
                 order.OrderItems = orderItems;
-                
+
 
                 await _context.Orders.AddAsync(order);
                 await _context.SaveChangesAsync();
 
+                // Thanh toán
                 var paymentRequest = new PaymentRequest
                 {
                     OrderId = order.OrderId,
                     MethodId = request.PaymentMethodId,
-                    Amount = (long)totalAmount
+                    Amount = (long)totalAmount,
+                    ReturnUrl = _momoSettings.ReturnUrl,
+                    NotifyUrl = _momoSettings.NotifyUrl
                 };
-                var payment = await _paymentService.CreatePaymentAsync(paymentRequest);
+
+                var paymentResult = await _paymentService.CreatePaymentAsync(paymentRequest);
+                // paymentResult.PayUrl sẽ null nếu phương thức là COD
 
                 await transaction.CommitAsync();
 
@@ -135,7 +147,8 @@ namespace APIMoiFood.Services.OrderService
                 {
                     StatusCode = 200,
                     Message = "Đặt hàng thành công",
-                    Order = _mapper.Map<OrderMap>(order)
+                    Order = _mapper.Map<OrderMap>(order),
+                    momoPaymentUrl = paymentResult?.PayUrl
                 };
 
             }
@@ -146,10 +159,12 @@ namespace APIMoiFood.Services.OrderService
                 {
                     StatusCode = 500,
                     Message = "Lỗi server: " + ex.Message,
-                    //InnerError = ex.InnerException?.Message
+                    InnerError = ex.InnerException?.Message,
+                    StackTrace = ex.StackTrace
                 };
             }
         }
+
         public async Task<dynamic> ConfirmReceived(int userId, int orderId)
         {
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
