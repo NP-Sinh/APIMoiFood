@@ -5,6 +5,7 @@
 2. JWT authentication
 3. BCrypt.Net 
 4. AutoMapper
+5. Payment Momo
 ```
 
 ## List API
