@@ -10,6 +10,7 @@ using APIMoiFood.Services.NotificationService;
 using APIMoiFood.Services.OrderService;
 using APIMoiFood.Services.PaymentMethodService;
 using APIMoiFood.Services.PaymentService;
+using APIMoiFood.Services.PaymentService.MomoService;
 using APIMoiFood.Services.PaymentService.VnpayService;
 using APIMoiFood.Services.ProfileService;
 using APIMoiFood.Services.ReviewService;
@@ -26,6 +27,7 @@ builder.Services.AddDbContext<MoiFoodDBContext>(c =>
         c.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<MomoSettings>(builder.Configuration.GetSection("Momo"));
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -60,6 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add services to the container.
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddAuthorization();
+builder.Services.AddHttpClient<MomoService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
@@ -71,6 +74,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IMomoService, MomoService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IVnPayService, VnpayService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
