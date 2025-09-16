@@ -27,15 +27,7 @@ namespace APIMoiFood.Services.PaymentService
 
         public async Task<PaymentResult> CreatePaymentAsync(PaymentRequest request)
         {
-            var payment = new Payment
-            {
-                OrderId = request.OrderId,
-                MethodId = request.MethodId,
-                Amount = request.Amount,
-                PaymentStatus = "pending",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            var payment = _mapper.Map<Payment>(request);
 
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
