@@ -2,6 +2,7 @@
 using APIMoiFood.Models.DTOs.Cart;
 using APIMoiFood.Models.DTOs.Category;
 using APIMoiFood.Models.DTOs.Food;
+using APIMoiFood.Models.DTOs.Notification;
 using APIMoiFood.Models.DTOs.Order;
 using APIMoiFood.Models.DTOs.Payment;
 using APIMoiFood.Models.DTOs.ReviewRequest;
@@ -123,6 +124,14 @@ namespace APIMoiFood.Models.Mapping
             // Notification mapping
             CreateMap<Notification, NotificationMap>().ReverseMap();
 
+            CreateMap<Notification, UserNotificationDto>()
+            .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => false));
+
+            // Chung
+            CreateMap<GlobalNotification, UserNotificationDto>()
+                .ForMember(dest => dest.NotificationId, opt => opt.MapFrom(src => src.GlobalNotificationId))
+                .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => (bool?)null))
+                .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => true));
         }
 
     }
