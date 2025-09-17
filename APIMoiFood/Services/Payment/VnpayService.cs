@@ -37,6 +37,10 @@ namespace APIMoiFood.Services.PaymentService.VnpayService
             query["vnp_OrderInfo"] = req.OrderInfo;
             query["vnp_Locale"] = string.IsNullOrEmpty(req.Locale) ? "vn" : req.Locale;
             query["vnp_ReturnUrl"] = string.IsNullOrEmpty(req.ReturnUrl) ? _settings.ReturnUrl : req.ReturnUrl;
+            if (!string.IsNullOrEmpty(req.NotifyUrl))
+            {
+                query["vnp_NotifyUrl"] = req.NotifyUrl;
+            }    
             query["vnp_CreateDate"] = req.CreateDate.ToString("yyyyMMddHHmmss");
             query["vnp_IpAddr"] = string.IsNullOrEmpty(req.IpAddress) ? "127.0.0.1" : req.IpAddress;
             query["vnp_OrderType"] = string.IsNullOrEmpty(req.OrderType) ? "other" : req.OrderType;
@@ -108,6 +112,7 @@ namespace APIMoiFood.Services.PaymentService.VnpayService
         public string Locale { get; set; } = "vn";     // Ngôn ngữ hiển thị
         public string OrderType { get; set; } = "other";
         public string ReturnUrl { get; set; } = "";    // URL trả kết quả về
+        public string NotifyUrl { get; set; } = "";
         public DateTime CreateDate { get; set; } = DateTime.Now;
     }
     public class VnPaymentResponse

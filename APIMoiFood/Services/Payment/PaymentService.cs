@@ -4,6 +4,7 @@ using APIMoiFood.Services.PaymentService.MomoService;
 using APIMoiFood.Services.PaymentService.VnpayService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace APIMoiFood.Services.PaymentService
 {
@@ -17,65 +18,79 @@ namespace APIMoiFood.Services.PaymentService
     public class PaymentService : IPaymentService
     {
         private readonly MoiFoodDBContext _context;
+        private readonly MomoSettings _momoSettings;
+        private readonly VnpaySettings _vnpaySettings;
         private readonly IMapper _mapper;
         private readonly IMomoService _momo;
         private readonly IVnpayService _vnpay;
 
 
-        public PaymentService(MoiFoodDBContext context, IMapper mapper, IMomoService momo, IVnpayService vnpayService)
+        public PaymentService(MoiFoodDBContext context, IMapper mapper, IMomoService momo, IVnpayService vnpayService, IOptions<MomoSettings> momoSettings, IOptions<VnpaySettings> vnpaySettings)
         {
             _context = context;
             _mapper = mapper;
             _momo = momo;
             _vnpay = vnpayService;
+            _momoSettings = momoSettings.Value;
+            _vnpaySettings = vnpaySettings.Value;
         }
 
         public async Task<PaymentResult> CreatePaymentAsync(PaymentRequest request)
         {
             var payment = _mapper.Map<Payment>(request);
-            
+            payment.PaymentStatus = "Pending";
+            payment.CreatedAt = DateTime.UtcNow;
+            payment.UpdatedAt = DateTime.UtcNow;
+
+            await _context.Payments.AddAsync(payment);
+            await _context.SaveChangesAsync();
+
+            string? payUrl = null;
             // Nếu là MoMo
             if (request.MethodId == 1)
             {
-                
-                var payUrl = await _momo.CreatePayment(
-                    amount: request.Amount,
-                    orderInfo: $"ThanhToanDon{request.OrderId}",
-                    orderId : request.OrderId.ToString(),
-                    returnUrl: request.ReturnUrl,
-                    notifyUrl: request.NotifyUrl
-                );
-
-                return new PaymentResult
+                var momoReq = new MomoRequest
                 {
-                    PaymentId = payment.PaymentId,
-                    PayUrl = payUrl
+                    PartnerCode = _momoSettings.PartnerCode,
+                    AccessKey = _momoSettings.AccessKey,
+                    SecretKey = _momoSettings.SecretKey, // chỉ để ký, không gửi ra ngoài
+                    Amount = request.Amount,
+                    OrderId = $"{request.OrderId}-{Guid.NewGuid():N}", // nên unique
+                    OrderInfo = $"Thanh toán đơn {request.OrderId}",
+                    RedirectUrl = request.ReturnUrl ?? _momoSettings.ReturnUrl,
+                    IpnUrl = request.NotifyUrl ?? _momoSettings.NotifyUrl,
+                    RequestId = Guid.NewGuid().ToString("N"),
+                    ExtraData = "", // nếu có thêm dữ liệu custom thì set
+                    AutoCapture = true,
+                    RequestType = "payWithMethod",
+                    Lang = "vi",
+                    PartnerName = "MoiFood",
+                    StoreId = "MoiFoodStore"
                 };
+
+                var momoResp = await _momo.CreatePayment(momoReq);
+                payUrl = momoResp.PayUrl;
             }
             // VNPAY
             if (request.MethodId == 3)
             {
-                var payUrl = _vnpay.PaymentVNPAY(new VnPaymentRequest
+                payUrl = _vnpay.PaymentVNPAY(new VnPaymentRequest
                 {
                     Amount = request.Amount,
-                    OrderInfo = $"ThanhToanDon{request.OrderId}",
                     OrderId = request.OrderId,
+                    OrderInfo = $"ThanhToanDon{request.OrderId}",
                     IpAddress = "127.0.0.1",
-                    ReturnUrl = request.ReturnUrl
+                    ReturnUrl = request.ReturnUrl ?? _vnpaySettings.ReturnUrl,
+                    NotifyUrl = request.NotifyUrl
                 });
-
-                return new PaymentResult
-                {
-                    PaymentId = payment.PaymentId,
-                    PayUrl = payUrl
-                };
             }
 
 
             // COD thì không cần payUrl
             return new PaymentResult
             {
-                PaymentId = payment.PaymentId
+                PaymentId = payment.PaymentId,
+                PayUrl = payUrl
             };
         }
 

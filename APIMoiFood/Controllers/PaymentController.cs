@@ -20,6 +20,13 @@ namespace APIMoiFood.Controllers
             _paymentMethodService = paymentMethodService;
             _configuration = configuration;
         }
+        [HttpPost("order/{orderId}")]
+        public async Task<IActionResult> CreatePayment(int orderId, [FromBody] PaymentRequest request)
+        {
+            request.OrderId = orderId;
+            var result = await _paymentService.CreatePaymentAsync(request);
+            return Ok(result);
+        }
         [HttpGet("get-payment-method")]
         public async Task<IActionResult> GetPaymentMethods()
         {
@@ -57,6 +64,15 @@ namespace APIMoiFood.Controllers
                 return Ok(new { success = true, orderId = request.OrderId, message = "Thanh toán MoMo thành công" });
             else
                 return BadRequest(new { success = false, orderId = request.OrderId, message = request.Message });
+        }
+
+        [HttpGet("vnpay-ipn")]
+        public async Task<IActionResult> VnPayIpn()
+        {
+            var result = await _paymentService.HandleVNPAYReturnAsync(Request.Query);
+            if (result.IsSuccess)
+                return Ok(new { RspCode = "00", Message = "Confirm Success" });
+            return BadRequest(new { RspCode = "97", Message = "Invalid signature or data" });
         }
 
         [HttpGet("vnpay-return")]
