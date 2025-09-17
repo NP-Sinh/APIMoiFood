@@ -5,7 +5,7 @@
         public int OrderId { get; set; }
         public int MethodId { get; set; }
         public long Amount { get; set; }
-        public string ReturnUrl { get; set; }
-        public string NotifyUrl { get; set; }
+        public string? ReturnUrl { get; set; }
+        public string? NotifyUrl { get; set; }
     }
 }

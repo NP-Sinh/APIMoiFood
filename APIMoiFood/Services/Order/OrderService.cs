@@ -130,61 +130,18 @@ namespace APIMoiFood.Services.OrderService
                 order.TotalAmount = totalAmount;
                 order.OrderItems = orderItems;
 
-
                 await _context.Orders.AddAsync(order);
                 await _context.SaveChangesAsync();
 
-                var payment = new Payment
-                {
-                    OrderId = order.OrderId,
-                    MethodId = request.PaymentMethodId,
-                    Amount = totalAmount,
-                    PaymentStatus = "pending",
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
-                await _context.Payments.AddAsync(payment);
-                await _context.SaveChangesAsync();
-
-
-                // Thanh toán
-                string payUrl = null;
-                if (request.PaymentMethodId == 1) // MoMo
-                {
-                    var paymentRequest = new Models.DTOs.Payment.PaymentRequest
-                    {
-                        OrderId = order.OrderId,
-                        MethodId = request.PaymentMethodId,
-                        Amount = (long)totalAmount,
-                        ReturnUrl = _momoSettings.ReturnUrl,
-                        NotifyUrl = _momoSettings.NotifyUrl
-                    };
-
-                    var paymentResult = await _paymentService.CreatePaymentAsync(paymentRequest);
-                    payUrl = paymentResult?.PayUrl;
-
-                }
-                else if (request.PaymentMethodId == 3) // VNPAY
-                {
-                    var vnpayRequest = new VnPaymentRequest
-                    {
-                        Amount = (long)totalAmount,
-                        OrderId = order.OrderId,
-                        OrderInfo = $"ThanhToanDon{order.OrderId}",
-                        IpAddress = "127.0.0.1",
-                        ReturnUrl = _vnpaySettings.ReturnUrl
-                    };
-                    payUrl = _vnpayService.PaymentVNPAY(vnpayRequest);
-                }
-                
                 await transaction.CommitAsync();
 
                 return new
                 {
                     StatusCode = 200,
                     Message = "Đặt hàng thành công",
+                    OrderId = order.OrderId,
                     Order = _mapper.Map<OrderMap>(order),
-                    PayUrl = payUrl
+                    Amount = totalAmount,
                 };
 
             }

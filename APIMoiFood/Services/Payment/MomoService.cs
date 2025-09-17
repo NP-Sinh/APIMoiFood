@@ -8,7 +8,7 @@ namespace APIMoiFood.Services.PaymentService.MomoService
 {
     public interface IMomoService
     {
-        Task<string> CreatePayment(long amount, string orderId, string orderInfo, string? returnUrl = null, string? notifyUrl = null);
+        Task<dynamic> CreatePayment(MomoRequest request);
     }
     public class MomoService : IMomoService
     {
@@ -21,40 +21,43 @@ namespace APIMoiFood.Services.PaymentService.MomoService
             _settings = options.Value;
         }
 
-        public async Task<string> CreatePayment(long amount, string orderId, string orderInfo,
-                                                string? returnUrl = null, string? notifyUrl = null)
+        public async Task<dynamic> CreatePayment(MomoRequest request)
         {
-            var requestId = Guid.NewGuid().ToString();
-            var momoOrderId = $"{orderId}-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+            var raw = $"accessKey={_settings.AccessKey}&amount={request.Amount}&extraData={request.ExtraData}" +
+                        $"&ipnUrl={request.IpnUrl}&orderId={request.OrderId}&orderInfo={request.OrderInfo}" +
+                        $"&partnerCode={_settings.PartnerCode}&redirectUrl={request.RedirectUrl}" +
+                        $"&requestId={request.RequestId}&requestType={request.RequestType}";
 
-            var req = new CollectionLinkRequest
+            var signature = SignSHA256(raw, _settings.SecretKey);
+
+            var payload = new
             {
-                orderInfo = orderInfo,
                 partnerCode = _settings.PartnerCode,
-                redirectUrl = returnUrl ?? _settings.ReturnUrl,
-                ipnUrl = notifyUrl ?? _settings.NotifyUrl,
-                amount = amount,
-                orderId = momoOrderId,
-                requestId = requestId,
-                requestType = "payWithMethod",
-                partnerName = "MoMo Payment",
-                storeId = "Test Store",
-                autoCapture = true,
-                lang = "vi",
-                extraData = ""
+                partnerName = request.PartnerName,
+                storeId = request.StoreId,
+                requestId = request.RequestId,
+                amount = request.Amount,
+                orderId = request.OrderId,
+                orderInfo = request.OrderInfo,
+                redirectUrl = request.RedirectUrl,
+                ipnUrl = request.IpnUrl,
+                lang = request.Lang,
+                requestType = request.RequestType,
+                extraData = request.ExtraData,
+                autoCapture = request.AutoCapture,
+                signature
             };
 
-            // Tạo chữ ký và gửi request
-            var raw = $"accessKey={_settings.AccessKey}&amount={req.amount}&extraData={req.extraData}" +
-                      $"&ipnUrl={req.ipnUrl}&orderId={req.orderId}&orderInfo={req.orderInfo}" +
-                      $"&partnerCode={req.partnerCode}&redirectUrl={req.redirectUrl}" +
-                      $"&requestId={req.requestId}&requestType={req.requestType}";
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            req.signature = SignSHA256(raw, _settings.SecretKey);
+            var res = await _client.PostAsync(_settings.Endpoint, content);
+            res.EnsureSuccessStatusCode();
 
-            var content = new StringContent(JsonSerializer.Serialize(req), Encoding.UTF8, "application/json");
-            var response = await _client.PostAsync(_settings.Endpoint, content);
-            return await response.Content.ReadAsStringAsync();
+            var respJson = await res.Content.ReadAsStringAsync();
+            var momoResp = JsonSerializer.Deserialize<MomoResponse>(respJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            return momoResp!;
         }
 
         private static string SignSHA256(string text, string key)
@@ -73,23 +76,34 @@ namespace APIMoiFood.Services.PaymentService.MomoService
         public string ReturnUrl { get; set; } = null!;
         public string NotifyUrl { get; set; } = null!;
     }
-
-    public class CollectionLinkRequest
+    public class MomoRequest
     {
-        public string orderInfo { get; set; }
-        public string partnerCode { get; set; }
-        public string redirectUrl { get; set; }
-        public string ipnUrl { get; set; }
-        public long amount { get; set; }
-        public string orderId { get; set; }
-        public string requestId { get; set; }
-        public string extraData { get; set; }
-        public string partnerName { get; set; }
-        public string storeId { get; set; }
-        public string requestType { get; set; }
-        public string orderGroupId { get; set; }
-        public bool autoCapture { get; set; }
-        public string lang { get; set; }
-        public string signature { get; set; }
+        public string PartnerCode { get; set; } = null!;
+        public string AccessKey { get; set; } = null!;
+        public string SecretKey { get; set; } = null!; // không gửi đi, chỉ dùng để ký
+        public string OrderId { get; set; } = null!;
+        public string OrderInfo { get; set; } = null!;
+        public string RedirectUrl { get; set; } = null!;
+        public string IpnUrl { get; set; } = null!;
+        public long Amount { get; set; }
+        public string RequestId { get; set; } = null!;
+        public string ExtraData { get; set; } = "";
+        public string RequestType { get; set; } = "payWithMethod";
+        public bool AutoCapture { get; set; } = true;
+        public string Lang { get; set; } = "vi";
+        public string PartnerName { get; set; } = "MoMo Payment";
+        public string StoreId { get; set; } = "Test Store";
+    }
+    
+    public class MomoResponse
+    {
+        public int ResultCode { get; set; }
+        public string Message { get; set; }
+        public string PayUrl { get; set; }
+        public string Deeplink { get; set; }
+        public string QrCodeUrl { get; set; }
+        public string OrderId { get; set; }
+        public string RequestId { get; set; }
+        public long Amount { get; set; }
     }
 }
