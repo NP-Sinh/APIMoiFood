@@ -4,18 +4,12 @@ API backend cho ứng dụng đặt món **MoiFood**
 
 ## Tính năng chính
 ```bash
-1. **Gửi Email bằng Gmail**  
-   Hỗ trợ gửi email xác thực/tương tác qua Gmail trong ASP.NET Core.
-2. **JWT Authentication**  
-   Bảo mật API bằng JSON Web Token (JWT).
-3. **BCrypt.Net**  
-   Mã hóa mật khẩu bằng thuật toán BCrypt.
-4. **AutoMapper**  
-   Tự động ánh xạ (mapping) giữa Entity và DTO.
-5. **Thanh toán MoMo**  
-   Tích hợp cổng thanh toán MoMo.
-6. **Thanh toán VNPAY**  
-   Tích hợp cổng thanh toán VNPAY (thông tin test bên dưới).
+1. Gửi Email bằng Gmail
+2. JWT Authentication
+3. BCrypt.Net
+4. AutoMapper(Tự động ánh xạ (mapping) giữa Entity và DTO)
+5. Thanh toán MoMo
+6. Thanh toán VNPAY
 ```
 ## Thông tin test VNPAY
 > **Lưu ý:** Đây chỉ là tài khoản sandbox để kiểm thử, **không sử dụng cho giao dịch thật**.
@@ -31,7 +25,7 @@ API backend cho ứng dụng đặt món **MoiFood**
 ## Danh sách API
 ### Auth
 ```bash
-  `POST http://0.0.0.0:5046/moifood/auth/login`
-  `POST http://0.0.0.0:5046/moifood/auth/register`
+POST http://0.0.0.0:5046/moifood/auth/login
+POST http://0.0.0.0:5046/moifood/auth/register
 ```
 ### Food
