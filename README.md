@@ -2,7 +2,7 @@
 
 API backend cho ứng dụng đặt món **MoiFood**
 
-## Tính năng chính
+## 📌Tính năng chính
 ```bash
 1. Gửi Email bằng Gmail
 2. JWT Authentication
@@ -11,7 +11,7 @@ API backend cho ứng dụng đặt món **MoiFood**
 5. Thanh toán MoMo
 6. Thanh toán VNPAY
 ```
-## Thông tin test VNPAY
+## 📌Thông tin test VNPAY
 > **Lưu ý:** Đây chỉ là tài khoản sandbox để kiểm thử, **không sử dụng cho giao dịch thật**.
 
 | Trường         | Giá trị                          |
@@ -22,7 +22,7 @@ API backend cho ứng dụng đặt món **MoiFood**
 | Ngày phát hành | 07/15                            |
 | Mật khẩu OTP   | 123456                           |
 
-## Danh sách API
+## 📌Danh sách API
 ### Auth
 ```bash
 POST http://0.0.0.0:5046/moifood/auth/login
