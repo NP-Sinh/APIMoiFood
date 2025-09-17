@@ -6,6 +6,12 @@
 3. BCrypt.Net 
 4. AutoMapper
 5. Payment Momo
+6. Payment VNPAY
+Ngân hàng:  	    NCB
+Số thẻ:     	    9704198526191432198
+Tên chủ thẻ:  	  NGUYEN VAN A
+Ngày phát hành:  	07/15
+Mật khẩu OTP:  	  123456
 ```
 
 ## List API
