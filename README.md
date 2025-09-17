@@ -17,7 +17,7 @@ API backend cho ứng dụng đặt món **MoiFood**
 | Trường         | Giá trị                          |
 |----------------|----------------------------------|
 | Ngân hàng      | NCB                              |
-| Số thẻ         | 9704 1985 2619 1432 198          |
+| Số thẻ         | 9704198526191432 198             |
 | Tên chủ thẻ    | NGUYEN VAN A                     |
 | Ngày phát hành | 07/15                            |
 | Mật khẩu OTP   | 123456                           |
