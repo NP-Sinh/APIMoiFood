@@ -11,16 +11,26 @@ API backend cho ứng dụng đặt món **MoiFood**
 5. Thanh toán MoMo
 6. Thanh toán VNPAY
 ```
-## 📌Thông tin test VNPAY
+## 📌Thông tin test Payment
 > **Lưu ý:** Đây chỉ là tài khoản sandbox để kiểm thử, **không sử dụng cho giao dịch thật**.
 
+### **VNPAY**
 | Trường         | Giá trị                          |
 |----------------|----------------------------------|
 | Ngân hàng      | NCB                              |
-| Số thẻ         | 9704198526191432 198             |
+| Số thẻ         | 9704198526191432198              |
 | Tên chủ thẻ    | NGUYEN VAN A                     |
 | Ngày phát hành | 07/15                            |
 | Mật khẩu OTP   | 123456                           |
+
+### **MOMO**
+| Trường         | Giá trị                          |
+|----------------|----------------------------------|
+| Ngân hàng      |                                  |
+| Số thẻ         | 9704000000000018                 |
+| Tên chủ thẻ    | NGUYEN VAN A                     |
+| Ngày phát hành | 03/07                            |
+| Mật khẩu OTP   | OTP                              |
 
 ## 📌Danh sách API
 ### Auth
