@@ -42,6 +42,23 @@ namespace APIMoiFood.Controllers
                 return NotFound("Phương thức thanh toán không tồn tại!");
             return Ok(result);
         }
+        [HttpPost("momo-ipn")]
+        public async Task<IActionResult> MomoIpn([FromBody] MomoIpnRequest request)
+        {
+            await _paymentService.HandleMomoIpnAsync(request);
+            return Ok(new { message = "success" });
+        }
+        [HttpGet("momo-return")]
+        public async Task<IActionResult> MomoReturn([FromQuery] MomoIpnRequest request)
+        {
+            await _paymentService.HandleMomoIpnAsync(request);
+
+            if (request.ResultCode == 0)
+                return Ok(new { success = true, orderId = request.OrderId, message = "Thanh toán MoMo thành công" });
+            else
+                return BadRequest(new { success = false, orderId = request.OrderId, message = request.Message });
+        }
+
         [HttpGet("vnpay-return")]
         public async Task<IActionResult> VnPayReturn()
         {

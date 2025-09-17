@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Azure.Core;
+using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -7,7 +8,7 @@ namespace APIMoiFood.Services.PaymentService.MomoService
 {
     public interface IMomoService
     {
-        Task<string> CreatePayment(long amount, string orderInfo, string? returnUrl = null, string? notifyUrl = null);
+        Task<string> CreatePayment(long amount, string orderId, string orderInfo, string? returnUrl = null, string? notifyUrl = null);
     }
     public class MomoService : IMomoService
     {
@@ -20,11 +21,11 @@ namespace APIMoiFood.Services.PaymentService.MomoService
             _settings = options.Value;
         }
 
-        public async Task<string> CreatePayment(long amount, string orderInfo,
+        public async Task<string> CreatePayment(long amount, string orderId, string orderInfo,
                                                 string? returnUrl = null, string? notifyUrl = null)
         {
-            var orderId = Guid.NewGuid().ToString();
             var requestId = Guid.NewGuid().ToString();
+            var momoOrderId = $"{orderId}-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
 
             var req = new CollectionLinkRequest
             {
@@ -33,7 +34,7 @@ namespace APIMoiFood.Services.PaymentService.MomoService
                 redirectUrl = returnUrl ?? _settings.ReturnUrl,
                 ipnUrl = notifyUrl ?? _settings.NotifyUrl,
                 amount = amount,
-                orderId = orderId,
+                orderId = momoOrderId,
                 requestId = requestId,
                 requestType = "payWithMethod",
                 partnerName = "MoMo Payment",
@@ -43,6 +44,7 @@ namespace APIMoiFood.Services.PaymentService.MomoService
                 extraData = ""
             };
 
+            // Tạo chữ ký và gửi request
             var raw = $"accessKey={_settings.AccessKey}&amount={req.amount}&extraData={req.extraData}" +
                       $"&ipnUrl={req.ipnUrl}&orderId={req.orderId}&orderInfo={req.orderInfo}" +
                       $"&partnerCode={req.partnerCode}&redirectUrl={req.redirectUrl}" +

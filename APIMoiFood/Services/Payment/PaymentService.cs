@@ -33,13 +33,15 @@ namespace APIMoiFood.Services.PaymentService
         public async Task<PaymentResult> CreatePaymentAsync(PaymentRequest request)
         {
             var payment = _mapper.Map<Payment>(request);
-
+            
             // Nếu là MoMo
             if (request.MethodId == 1)
             {
+                
                 var payUrl = await _momo.CreatePayment(
                     amount: request.Amount,
                     orderInfo: $"ThanhToanDon{request.OrderId}",
+                    orderId : request.OrderId.ToString(),
                     returnUrl: request.ReturnUrl,
                     notifyUrl: request.NotifyUrl
                 );
@@ -80,19 +82,23 @@ namespace APIMoiFood.Services.PaymentService
         // Xử lý IPN MoMo để cập nhật TransactionId + trạng thái
         public async Task HandleMomoIpnAsync(MomoIpnRequest req)
         {
-            if (req.ResultCode == 0)
-            {
-                var payment = await _context.Payments
-                    .FirstOrDefaultAsync(p => p.OrderId == int.Parse(req.OrderId));
+            bool isSuccess = req.ResultCode == 0;
+            int orderId = int.Parse(req.OrderId.Split('-')[0]);
 
-                if (payment != null)
-                {  
-                    payment.TransactionId = req.TransId;
-                    payment.PaymentStatus = "Success";
-                    payment.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-                }
+            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == orderId);
+
+            payment.TransactionId = req.TransId;
+            payment.PaymentStatus = isSuccess ? "Success" : "Failed";
+            payment.UpdatedAt = DateTime.UtcNow;
+
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == payment.OrderId);
+            if (order != null)
+            {
+                order.PaymentStatus = isSuccess ? "Paid" : "Failed";
+                order.UpdatedAt = DateTime.UtcNow;
             }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<dynamic> HandleVNPAYReturnAsync(IQueryCollection query)
@@ -153,7 +159,7 @@ namespace APIMoiFood.Services.PaymentService
         public string Message { get; set; }         // Mô tả
         public string PayType { get; set; }         // Loại thanh toán
         public long ResponseTime { get; set; }      // Unix ms
-        public string ExtraData { get; set; }       // Dữ liệu thêm
+        public string? ExtraData { get; set; }       // Dữ liệu thêm
         public string Signature { get; set; }       // Chữ ký để verify
     }
 }
