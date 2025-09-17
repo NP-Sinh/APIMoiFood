@@ -203,13 +203,19 @@ namespace APIMoiFood.Services.OrderService
 
         public async Task<dynamic> ConfirmReceived(int userId, int orderId)
         {
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
+            var order = await _context.Orders
+                .Include(o => o.Payments).ThenInclude(p => p.Method)
+                .FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
 
             order.OrderStatus = "Completed";
 
             if(order.Payments.Any(p => p.Method.Name == "COD"))
             {
                 order.PaymentStatus = "Paid";
+                foreach (var p in order.Payments)
+                {
+                    if (p.Method.Name == "COD") p.PaymentStatus = "Success";
+                }
             }
 
             order.UpdatedAt = DateTime.Now;
