@@ -34,9 +34,6 @@ namespace APIMoiFood.Services.PaymentService
         {
             var payment = _mapper.Map<Payment>(request);
 
-            _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
-
             // Nếu là MoMo
             if (request.MethodId == 1)
             {

@@ -146,6 +146,7 @@ namespace APIMoiFood.Services.OrderService
                 await _context.Payments.AddAsync(payment);
                 await _context.SaveChangesAsync();
 
+
                 // Thanh toán
                 string payUrl = null;
                 if (request.PaymentMethodId == 1) // MoMo
@@ -161,6 +162,7 @@ namespace APIMoiFood.Services.OrderService
 
                     var paymentResult = await _paymentService.CreatePaymentAsync(paymentRequest);
                     payUrl = paymentResult?.PayUrl;
+
                 }
                 else if (request.PaymentMethodId == 3) // VNPAY
                 {
@@ -174,18 +176,7 @@ namespace APIMoiFood.Services.OrderService
                     };
                     payUrl = _vnpayService.PaymentVNPAY(vnpayRequest);
                 }
-                else
-                {
-                    var vnpayRequest = new VnPaymentRequest
-                    {
-                        Amount = (long)totalAmount,
-                        OrderId = order.OrderId,
-                        OrderInfo = $"ThanhToanDon{order.OrderId}",
-                        IpAddress = "127.0.0.1",
-                        ReturnUrl = _vnpaySettings.ReturnUrl
-                    };
-                    payUrl = _vnpayService.PaymentVNPAY(vnpayRequest);
-                }
+                
                 await transaction.CommitAsync();
 
                 return new
