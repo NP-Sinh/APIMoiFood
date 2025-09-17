@@ -1,6 +1,6 @@
 # API – MoiFood
 
-API backend cho ứng dụng đặt món **MoiFood**, được phát triển trên **ASP.NET Core**.
+API backend cho ứng dụng đặt món **MoiFood**
 
 ## Tính năng chính
 1. **Gửi Email bằng Gmail**  
