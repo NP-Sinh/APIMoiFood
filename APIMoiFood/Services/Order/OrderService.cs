@@ -4,9 +4,11 @@ using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
 using APIMoiFood.Services.PaymentService;
 using APIMoiFood.Services.PaymentService.MomoService;
+using APIMoiFood.Services.PaymentService.VnpayService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using VNPAY.NET.Models;
 
 namespace APIMoiFood.Services.OrderService
 {
@@ -29,15 +31,19 @@ namespace APIMoiFood.Services.OrderService
         public readonly IMapper _mapper;
         public readonly IPaymentService _paymentService;
         private readonly IMomoService _momoService;
+        private readonly IVnpayService _vnpayService;
         private readonly MomoSettings _momoSettings;
-        public OrderService(MoiFoodDBContext context, IMapper mapper, IPaymentService paymentService, IMomoService momoService, IOptions<MomoSettings> momoSettings)
+        private readonly VnpaySettings _vnpaySettings;
+        public OrderService(MoiFoodDBContext context, IMapper mapper, IPaymentService paymentService, 
+            IMomoService momoService, IOptions<MomoSettings> momoSettings, IVnpayService vnpayService, IOptions<VnpaySettings> vnpaySettings)
         {
             _context = context;
             _mapper = mapper;
             _paymentService = paymentService;
             _momoService = momoService;
+            _vnpayService = vnpayService;
             _momoSettings = momoSettings.Value;
-
+            _vnpaySettings = vnpaySettings.Value;
         }
         public async Task<dynamic> GetOrdersByUserId(int userId)
         {
@@ -128,19 +134,58 @@ namespace APIMoiFood.Services.OrderService
                 await _context.Orders.AddAsync(order);
                 await _context.SaveChangesAsync();
 
-                // Thanh toán
-                var paymentRequest = new PaymentRequest
+                var payment = new Payment
                 {
                     OrderId = order.OrderId,
                     MethodId = request.PaymentMethodId,
-                    Amount = (long)totalAmount,
-                    ReturnUrl = _momoSettings.ReturnUrl,
-                    NotifyUrl = _momoSettings.NotifyUrl
+                    Amount = totalAmount,
+                    PaymentStatus = "pending",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
                 };
+                await _context.Payments.AddAsync(payment);
+                await _context.SaveChangesAsync();
 
-                var paymentResult = await _paymentService.CreatePaymentAsync(paymentRequest);
-                // paymentResult.PayUrl sẽ null nếu phương thức là COD
+                // Thanh toán
+                string payUrl = null;
+                if (request.PaymentMethodId == 1) // MoMo
+                {
+                    var paymentRequest = new Models.DTOs.Payment.PaymentRequest
+                    {
+                        OrderId = order.OrderId,
+                        MethodId = request.PaymentMethodId,
+                        Amount = (long)totalAmount,
+                        ReturnUrl = _momoSettings.ReturnUrl,
+                        NotifyUrl = _momoSettings.NotifyUrl
+                    };
 
+                    var paymentResult = await _paymentService.CreatePaymentAsync(paymentRequest);
+                    payUrl = paymentResult?.PayUrl;
+                }
+                else if (request.PaymentMethodId == 3) // VNPAY
+                {
+                    var vnpayRequest = new VnPaymentRequest
+                    {
+                        Amount = (long)totalAmount,
+                        OrderId = order.OrderId,
+                        OrderInfo = $"ThanhToanDon{order.OrderId}",
+                        IpAddress = "127.0.0.1",
+                        ReturnUrl = _vnpaySettings.ReturnUrl
+                    };
+                    payUrl = _vnpayService.PaymentVNPAY(vnpayRequest);
+                }
+                else
+                {
+                    var vnpayRequest = new VnPaymentRequest
+                    {
+                        Amount = (long)totalAmount,
+                        OrderId = order.OrderId,
+                        OrderInfo = $"ThanhToanDon{order.OrderId}",
+                        IpAddress = "127.0.0.1",
+                        ReturnUrl = _vnpaySettings.ReturnUrl
+                    };
+                    payUrl = _vnpayService.PaymentVNPAY(vnpayRequest);
+                }
                 await transaction.CommitAsync();
 
                 return new
@@ -148,7 +193,7 @@ namespace APIMoiFood.Services.OrderService
                     StatusCode = 200,
                     Message = "Đặt hàng thành công",
                     Order = _mapper.Map<OrderMap>(order),
-                    momoPaymentUrl = paymentResult?.PayUrl
+                    PayUrl = payUrl
                 };
 
             }
