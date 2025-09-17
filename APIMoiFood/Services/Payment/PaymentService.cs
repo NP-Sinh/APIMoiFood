@@ -86,9 +86,9 @@ namespace APIMoiFood.Services.PaymentService
                     .FirstOrDefaultAsync(p => p.OrderId == int.Parse(req.OrderId));
 
                 if (payment != null)
-                {
+                {  
                     payment.TransactionId = req.TransId;
-                    payment.PaymentStatus = "paid";
+                    payment.PaymentStatus = "Success";
                     payment.UpdatedAt = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
                 }
