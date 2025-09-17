@@ -132,6 +132,9 @@ namespace APIMoiFood.Models.Mapping
                 .ForMember(dest => dest.NotificationId, opt => opt.MapFrom(src => src.GlobalNotificationId))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => (bool?)null))
                 .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => true));
+
+
+            /// Testing
         }
 
     }
