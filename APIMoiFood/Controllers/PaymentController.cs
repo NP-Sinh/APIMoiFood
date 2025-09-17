@@ -2,6 +2,7 @@
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Services.PaymentMethodService;
 using APIMoiFood.Services.PaymentService;
+using APIMoiFood.Services.PaymentService.VnpayService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace APIMoiFood.Controllers
@@ -12,10 +13,12 @@ namespace APIMoiFood.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly IPaymentMethodService _paymentMethodService;
-        public PaymentController(IPaymentService paymentService, IPaymentMethodService paymentMethodService)
+        private readonly IConfiguration _configuration;
+        public PaymentController(IPaymentService paymentService, IPaymentMethodService paymentMethodService, IConfiguration configuration)
         {
             _paymentService = paymentService;
             _paymentMethodService = paymentMethodService;
+            _configuration = configuration;
         }
         [HttpGet("get-payment-method")]
         public async Task<IActionResult> GetPaymentMethods()
@@ -38,6 +41,14 @@ namespace APIMoiFood.Controllers
             if(result == null)
                 return NotFound("Phương thức thanh toán không tồn tại!");
             return Ok(result);
+        }
+        [HttpGet("vnpay-return")]
+        public async Task<IActionResult> VnPayReturn()
+        {
+            var result = await _paymentService.HandleVNPAYReturnAsync(Request.Query);
+            if (result.IsSuccess)
+                return Ok(result);
+            return BadRequest(result);
         }
 
     }
