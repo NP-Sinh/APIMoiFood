@@ -74,7 +74,7 @@ namespace APIMoiFood.Services.PaymentService
             // VNPAY
             if (request.MethodId == 3)
             {
-                payUrl = _vnpay.PaymentVNPAY(new VnPaymentRequest
+                var vnpayReq = new VnPaymentRequest
                 {
                     Amount = request.Amount,
                     OrderId = request.OrderId,
@@ -82,7 +82,9 @@ namespace APIMoiFood.Services.PaymentService
                     IpAddress = "127.0.0.1",
                     ReturnUrl = request.ReturnUrl ?? _vnpaySettings.ReturnUrl,
                     NotifyUrl = request.NotifyUrl
-                });
+                };
+
+                payUrl = _vnpay.PaymentVNPAY(vnpayReq);
             }
 
 
