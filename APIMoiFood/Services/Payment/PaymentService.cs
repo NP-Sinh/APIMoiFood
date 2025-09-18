@@ -38,10 +38,6 @@ namespace APIMoiFood.Services.PaymentService
         public async Task<PaymentResult> CreatePaymentAsync(PaymentRequest request)
         {
             var payment = _mapper.Map<Payment>(request);
-            payment.PaymentStatus = "Pending";
-            payment.CreatedAt = DateTime.UtcNow;
-            payment.UpdatedAt = DateTime.UtcNow;
-
             await _context.Payments.AddAsync(payment);
             await _context.SaveChangesAsync();
 
