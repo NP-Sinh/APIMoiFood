@@ -34,7 +34,7 @@ namespace APIMoiFood.Services.JwtService
                     new Claim(ClaimTypes.Name, username),
                     new Claim(ClaimTypes.Role, role ?? "User")
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(30),
+                Expires = DateTime.UtcNow.AddHours(24),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature

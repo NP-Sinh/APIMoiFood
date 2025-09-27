@@ -29,56 +29,77 @@ namespace APIMoiFood.Services.OrderService
     {
         public readonly MoiFoodDBContext _context;
         public readonly IMapper _mapper;
-        public readonly IPaymentService _paymentService;
-        private readonly IMomoService _momoService;
-        private readonly IVnpayService _vnpayService;
-        private readonly MomoSettings _momoSettings;
-        private readonly VnpaySettings _vnpaySettings;
-        public OrderService(MoiFoodDBContext context, IMapper mapper, IPaymentService paymentService, 
-            IMomoService momoService, IOptions<MomoSettings> momoSettings, IVnpayService vnpayService, IOptions<VnpaySettings> vnpaySettings)
+        public OrderService(MoiFoodDBContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
-            _paymentService = paymentService;
-            _momoService = momoService;
-            _vnpayService = vnpayService;
-            _momoSettings = momoSettings.Value;
-            _vnpaySettings = vnpaySettings.Value;
+
         }
         public async Task<dynamic> GetOrdersByUserId(int userId)
         {
+
             var orders = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Food)
-                .Include(o => o.Payments)
-                .ThenInclude(p => p.Method)
-                .Where(o => o.UserId == userId)
+                .Where (o => o.UserId == userId)
                 .OrderByDescending(o => o.CreatedAt)
-                
+                .Select(o => new
+                {
+                    o.OrderId,
+                    o.CreatedAt,
+                    Items = o.OrderItems.Select(oi => new
+                    {
+                        oi.FoodId,
+                        oi.Food!.Name,
+                        oi.Price,
+                        oi.Quantity,
+                        oi.Note,
+                    }),
+                    Payments = o.Payments.Select(p => new
+                    {
+                        MethodName = p.Method.Name,
+                        p.Amount,
+
+                    })
+
+                })
                 .ToListAsync();
 
-            return new
-            {
-                StatusCode = 200,
-                Message = "Thành công",
-                Order = orders,
-            };
+            return orders;
         }
         public async Task<dynamic> GetOrderDetails(int userId, int orderId)
         {
             var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Food)
-                .Include(o => o.Payments)
-                .ThenInclude(p => p.Method)
-                .FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
-            
-            return new
-            {
-                StatusCode = 200,
-                Message = "Thành công",
-                Order = order
-            };
+                        .Where(o => o.UserId == userId && o.OrderId == orderId)
+                        .Select(o => new
+                        {
+                            o.OrderId,
+                            o.CreatedAt,
+                            o.TotalAmount,
+                            Items = o.OrderItems.Select(oi => new
+                            {
+                                oi.OrderItemId,
+                                oi.Quantity,
+                                oi.Price,
+                                oi.Note,
+                                Food = new
+                                {
+                                    oi.Food.FoodId,
+                                    oi.Food.Name,
+                                    oi.Food.Price,
+                                    oi.Food.ImageUrl,
+                                    oi.Food.IsAvailable,
+                                }
+                            }),
+                            Payments = o.Payments.Select(p => new
+                            {
+                                p.PaymentId,
+                                p.Amount,
+                                p.PaymentStatus,
+                                Method = p.Method.Name
+                            })
+                        })
+                        .FirstOrDefaultAsync();
+
+            return order!;
         }
         public async Task<dynamic> CreateOrder(int userId, OrderRequest request)
         {
@@ -223,20 +244,34 @@ namespace APIMoiFood.Services.OrderService
         }
         public async Task<dynamic> GetOrderById(int orderId)
         {
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Food)
-                .Include(o => o.Payments)
-                .ThenInclude(p => p.Method)
-                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+            var orders = await _context.Orders
+                 .Where(o => o.OrderId == orderId)
+                 .OrderByDescending(o => o.CreatedAt)
+                 .Select(o => new
+                 {
+                     o.UserId,
+                     o.OrderId,
+                     o.CreatedAt,
+                     Items = o.OrderItems.Select(oi => new
+                     {
+                         oi.FoodId,
+                         oi.Food!.Name,
+                         oi.Price,
+                         oi.Quantity,
+                         oi.Note,
+                     }),
+                     Payments = o.Payments.Select(p => new
+                     {
+                         MethodName = p.Method.Name,
+                         p.Amount,
 
-            return new
-            {
-                StatusCode = 200,
-                Message = "Thành công",
-                Order = _mapper.Map<OrderMap>(order)
-            };
+                     })
+
+                 })
+                 .ToListAsync();
+
+
+            return orders;
         }
         public async Task<dynamic> UpdateOrderStatus(int orderId, string newStatus)
         {
