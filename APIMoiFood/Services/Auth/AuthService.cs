@@ -7,12 +7,6 @@ using APIMoiFood.Services.JwtService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using static System.Net.WebRequestMethods;
 
 namespace APIMoiFood.Services.AuthService
 {
@@ -36,7 +30,13 @@ namespace APIMoiFood.Services.AuthService
         private readonly IMemoryCache _cache;
         private readonly IMapper _mapper;
 
-        public AuthService(MoiFoodDBContext context, IConfiguration config, IEmailService emailService, IJwtService jwtService, IMemoryCache cache, IMapper mapper)
+        public AuthService(
+            MoiFoodDBContext context,
+            IConfiguration config,
+            IEmailService emailService,
+            IJwtService jwtService,
+            IMemoryCache cache,
+            IMapper mapper)
         {
             _context = context;
             _config = config;
@@ -45,17 +45,18 @@ namespace APIMoiFood.Services.AuthService
             _cache = cache;
             _mapper = mapper;
         }
+
         public async Task<dynamic?> Register(RegisterRequest request)
         {
             if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
                 return null;
 
             var user = _mapper.Map<User>(request);
-
             user.PasswordHash = CommonServices.HashPassword(request.Password);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
             return new
             {
                 statusCode = 200,
@@ -67,19 +68,16 @@ namespace APIMoiFood.Services.AuthService
         public async Task<dynamic?> Login(LoginRequest request)
         {
             var user = await _context.Users
-               .FirstOrDefaultAsync(u =>
-                   u.Username == request.UsernameOrEmail ||
-                   u.Email == request.UsernameOrEmail);
+                .FirstOrDefaultAsync(u =>
+                    u.Username == request.UsernameOrEmail ||
+                    u.Email == request.UsernameOrEmail);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
 
-            // Tạo AccessToken (JWT)
             var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "User");
-
-            // Tạo RefreshToken
             var refreshToken = _jwtService.GenerateRefreshToken();
-            var refreshMap = GenerateRefreshToken(user, refreshToken);
+            var refreshEntity = AddRefreshToken(user.UserId, refreshToken);
 
             await _context.SaveChangesAsync();
 
@@ -87,121 +85,70 @@ namespace APIMoiFood.Services.AuthService
             {
                 Token = jwtToken,
                 TokenExpiry = DateTime.UtcNow.AddMinutes(30),
-                RefreshToken = refreshMap.RefreshToken1,
-                RefreshTokenExpiry = refreshMap.ExpiryDate
+                RefreshToken = refreshEntity.RefreshToken1,
+                RefreshTokenExpiry = refreshEntity.ExpiryDate
             };
         }
 
-
         public async Task<dynamic?> ForgotPasswordAsync(ForgotPasswordRequest request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
             {
-                return new
-                {
-                    statusCode = 400,
-                    message = "Người dùng không tồn tại",
-                };
+                return new { statusCode = 400, message = "Người dùng không tồn tại" };
             }
 
-            var otp = CommonServices.GenerateOTP(8);
-
-            // luôn ghi đè OTP theo email
-            _cache.Set($"otp_{request.Email}", otp, TimeSpan.FromMinutes(5));
-
-            await _emailService.SendEmailAsync(request.Email, "Mã OTP đặt lại mật khẩu",
-                $"<p>Mã OTP của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
-
-            return new
-            {
-                statusCode = 200,
-                message = "OTP đặt lại mật khẩu đã gửi về email",
-            };
+            await SendOtpAsync(request.Email, "Mã OTP đặt lại mật khẩu");
+            return new { statusCode = 200, message = "OTP đặt lại mật khẩu đã gửi về email" };
         }
 
         public async Task<dynamic?> VerifyOtpAsync(VerifyOtpRequest request)
         {
-            if (!_cache.TryGetValue($"otp_{request.Email}", out string? cachedOtp) || cachedOtp != request.Otp)
+            var cacheKey = $"otp_{request.Email}";
+            if (!_cache.TryGetValue(cacheKey, out string? cachedOtp) || cachedOtp != request.Otp)
             {
-                return new
-                {
-                    statusCode = 400,
-                    message = "OTP không hợp lệ hoặc đã hết hạn",
-                };
+                return new { statusCode = 400, message = "OTP không hợp lệ hoặc đã hết hạn" };
             }
 
-            _cache.Set("verified_email", request.Email, TimeSpan.FromMinutes(5));
+            _cache.Set($"verified_{request.Email}", request.Email, TimeSpan.FromMinutes(5));
+            _cache.Remove(cacheKey);
 
-            _cache.Remove($"otp_{request.Email}");
-
-            return new
-            {
-                statusCode = 200,
-                message = "Xác thực OTP thành công."
-            };
+            return new { statusCode = 200, message = "Xác thực OTP thành công." };
         }
 
         public async Task<dynamic?> ResetPasswordAsync(ResetPasswordRequest request)
         {
-            if (!_cache.TryGetValue("verified_email", out string? email))
+            if (!_cache.TryGetValue($"verified_{request.Email}", out string? email))
             {
-                return new
-                {
-                    statusCode = 400,
-                    message = "Bạn chưa xác thực OTP hoặc OTP đã hết hạn",
-                };
+                return new { statusCode = 400, message = "Bạn chưa xác thực OTP hoặc OTP đã hết hạn" };
             }
 
-            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
-                return new
-                {
-                    statusCode = 400,
-                    message = "Người dùng không tồn tại",
-                };
-            };
+                return new { statusCode = 400, message = "Người dùng không tồn tại" };
+            }
 
             user.PasswordHash = CommonServices.HashPassword(request.NewPassword);
             await _context.SaveChangesAsync();
 
-            _cache.Remove("verified_email");
+            _cache.Remove($"verified_{request.Email}");
 
-            return new
-            {
-                statusCode = 200,
-                message = "Đặt lại mật khẩu thành công."
-            };
+            return new { statusCode = 200, message = "Đặt lại mật khẩu thành công." };
         }
 
         public async Task<dynamic?> ResendOtp(ForgotPasswordRequest request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
             {
-                return new
-                {
-                    statusCode = 400,
-                    message = "Người dùng không tồn tại",
-                };
+                return new { statusCode = 400, message = "Người dùng không tồn tại" };
             }
-            ;
 
-            var otp = CommonServices.GenerateOTP(8);
-
-            _cache.Set($"otp_{request.Email}", otp, TimeSpan.FromMinutes(5));
-
-            await _emailService.SendEmailAsync(request.Email, "Mã OTP mới",
-                $"<p>Mã OTP mới của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
-
-            return new
-            {
-                statusCode = 200,
-                message = "OTP mới đã được gửi",
-            };
+            await SendOtpAsync(request.Email, "Mã OTP mới");
+            return new { statusCode = 200, message = "OTP mới đã được gửi" };
         }
-        // Logout bằng cách thu hồi refresh token
+
         public async Task<dynamic?> Logout(int userId, LogoutRequest request)
         {
             var token = await _context.RefreshTokens
@@ -209,38 +156,36 @@ namespace APIMoiFood.Services.AuthService
 
             if (token == null)
             {
-                return new
-                {
-                    statusCode = 400,
-                    message = "Token không hợp lệ",
-                };
+                return new { statusCode = 400, message = "Token không hợp lệ" };
             }
 
             token.IsRevoked = true;
             await _context.SaveChangesAsync();
 
-            return new
-            {
-                statusCode = 200,
-                message = "Đăng xuất thành công"
-            };
+            return new { statusCode = 200, message = "Đăng xuất thành công" };
         }
 
-        private RefreshTokenMap GenerateRefreshToken(User user, string refreshToken)
+        private async Task SendOtpAsync(string email, string subject)
         {
-            var refreshEntity = new RefreshToken
+            var otp = CommonServices.GenerateOTP(8);
+            _cache.Set($"otp_{email}", otp, TimeSpan.FromMinutes(5));
+
+            await _emailService.SendEmailAsync(email, subject,
+                $"<p>Mã OTP của bạn là: <b>{otp}</b><br/>Có hiệu lực trong 5 phút.</p>");
+        }
+
+        private RefreshToken AddRefreshToken(int userId, string refreshToken)
+        {
+            var entity = new RefreshToken
             {
-                UserId = user.UserId,
+                UserId = userId,
                 RefreshToken1 = refreshToken,
                 ExpiryDate = DateTime.UtcNow.AddDays(7),
                 CreatedAt = DateTime.UtcNow,
                 IsRevoked = false
             };
-
-            _context.RefreshTokens.Add(refreshEntity);
-
-            return _mapper.Map<RefreshTokenMap>(refreshEntity);
+            _context.RefreshTokens.Add(entity);
+            return entity;
         }
-
     }
 }
