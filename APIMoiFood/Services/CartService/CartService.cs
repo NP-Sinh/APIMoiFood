@@ -26,31 +26,29 @@ namespace APIMoiFood.Services.CartService
         public async Task<dynamic> GetCart(int userId)
         {
             var cart = await _context.Carts
-                .Include(c => c.CartItems)
-                .ThenInclude(ci => ci.Food)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+                .Where(c => c.UserId == userId)
+                .Select(c => new
+                {
+                    c.CartId,
+                    c.UserId,
+                    CartItems = c.CartItems.Select(ci => new
+                    {
+                        ci.CartItemId,
+                        ci.FoodId,
+                        ci.Quantity,
+                        Price = ci.Food!.Price,
+                        Total = (ci.Food!.Price) * ci.Quantity,
+                    })
+                })
+                .FirstOrDefaultAsync();
 
-            var itemsWithTotal = cart.CartItems.Select(ci => new
-            {
-                ci.CartItemId,
-                ci.FoodId,
-                ci.Quantity,
-                Price = ci.Food?.Price ?? 0,
-                ItemTotal = (ci.Food?.Price ?? 0) * ci.Quantity
-            }).ToList();
-
-            decimal totalPrice = itemsWithTotal.Sum(i => i.ItemTotal);
+            decimal totalPrice = cart.CartItems.Sum(i => i.Total);
 
             return new
             {
                 StatusCode = 200,
                 Message = "Thành công",
-                DataCart = new
-                {
-                    cart.CartId,
-                    cart.UserId,
-                    Items = itemsWithTotal
-                },
+                DataCart = cart,
                 TotalPrice = totalPrice
             };
         }
