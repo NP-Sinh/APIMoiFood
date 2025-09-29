@@ -27,52 +27,42 @@ namespace APIMoiFood.Models.Mapping
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ReverseMap();
 
-            // RefreshToken <-> RefreshTokenMap
-            CreateMap<RefreshToken, RefreshTokenMap>().ReverseMap();
-
             // RegisterRequest -> User
             CreateMap<RegisterRequest, User>()
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "User"))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ReverseMap();
 
             // Category mapping
             CreateMap<Category, CategoryMap>()
                 .ForMember(dest => dest.Foods, opt => opt.MapFrom(src => src.Foods))
                 .ReverseMap();
-
             CreateMap<CategoryRequest, Category>().ReverseMap();
 
             // Food mapping
             CreateMap<Food, FoodMap>().ReverseMap();
-
             CreateMap<FoodRequest, Food>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => false))
-                .ForMember(dest => dest.IsAvailable, opt => opt.MapFrom(src => true)).ReverseMap();
+                .ForMember(dest => dest.IsAvailable, opt => opt.MapFrom(src => true))
+                .ReverseMap();
 
             // Cart mapping
             CreateMap<Cart, CartMap>()
-                .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems))
                 .ReverseMap();
-
-            CreateMap<CartItemRequest, CartItem>()
-                .ForMember(dest => dest.CartItemId, opt => opt.Ignore())
-                .ForMember(dest => dest.Cart, opt => opt.Ignore())
-                .ForMember(dest => dest.Food, opt => opt.Ignore());
-
-            // Mapping CartRequest -> Cart
             CreateMap<CartRequest, Cart>()
                 .ForMember(dest => dest.CartId, opt => opt.Ignore())
-                .ForMember(dest => dest.CartItems, opt => opt.Ignore())
-                .ForMember(dest => dest.User, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ReverseMap();
 
-            // CartItem <-> CartItemMap
             CreateMap<CartItem, CartItemMap>().ReverseMap();
+            CreateMap<CartItemRequest, CartItem>()
+                .ForMember(dest => dest.CartItemId, opt => opt.Ignore())
+                .ReverseMap();
 
             // cartItem -> orderItem
             CreateMap<CartItem, OrderItem>()
@@ -82,12 +72,7 @@ namespace APIMoiFood.Models.Mapping
                 .ForMember(dest => dest.Note, opt => opt.Ignore())
                 .ReverseMap();
 
-            // OrderItemRequest -> OrderItem
-            CreateMap<OrderItemRequest, OrderItem>()
-                .ForMember(dest => dest.Price, opt => opt.Ignore())
-                .ReverseMap();
-
-            // OrderRequest -> Order
+            // order mapping
             CreateMap<OrderRequest, Order>()
                 .ForMember(dest => dest.UserId, opt => opt.Ignore()) 
                 .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
@@ -97,25 +82,29 @@ namespace APIMoiFood.Models.Mapping
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ReverseMap();
-
-            // Entity -> DTO
-            CreateMap<OrderItem, OrderItemMap>()
-                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food.Name));
-
             CreateMap<Order, OrderMap>()
                 .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems))
-                .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments));
+                .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments))
+                .ReverseMap();
 
-            CreateMap<Payment, PaymentMap>();
+            CreateMap<OrderItemRequest, OrderItem>()
+                .ForMember(dest => dest.Price, opt => opt.Ignore())
+                .ReverseMap();
+            CreateMap<OrderItem, OrderItemMap>()
+                .ForMember(dest => dest.FoodName, opt => opt.MapFrom(src => src.Food.Name))
+                .ReverseMap();
 
+            // payment mapping
+            CreateMap<Payment, PaymentMap>().ReverseMap();
             CreateMap<PaymentRequest, Payment>()
                 .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => "pending"))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ReverseMap();
 
-            CreateMap<PaymentMethod, PaymentMethodMap>();
-            CreateMap<PaymentMethodRequest, PaymentMethod>();
+            // payment method mapping
+            CreateMap<PaymentMethod, PaymentMethodMap>().ReverseMap();
+            CreateMap<PaymentMethodRequest, PaymentMethod>().ReverseMap();
 
             // Review mapping
             CreateMap<Review, ReviewMap>().ReverseMap();
@@ -123,15 +112,16 @@ namespace APIMoiFood.Models.Mapping
 
             // Notification mapping
             CreateMap<Notification, NotificationMap>().ReverseMap();
-
             CreateMap<Notification, UserNotificationDto>()
-            .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => false));
+            .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => false))
+            .ReverseMap();
 
             // Chung
             CreateMap<GlobalNotification, UserNotificationDto>()
                 .ForMember(dest => dest.NotificationId, opt => opt.MapFrom(src => src.GlobalNotificationId))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => (bool?)null))
-                .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => true));
+                .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => true))
+                .ReverseMap();
 
 
             /// Testing

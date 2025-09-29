@@ -24,10 +24,10 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
         [HttpPost("add-to-cart")]
-        public async Task<IActionResult> AddToCart([FromBody] CartItemRequest request)
+        public async Task<IActionResult> AddToCart([FromQuery] CartRequest cartRequest ,[FromBody] CartItemRequest request)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var result = await _cartService.AddToCart(userId, request);
+            var result = await _cartService.AddToCart(userId, cartRequest, request);
             return Ok(result);
         }
         [HttpPost("update-quantity")]

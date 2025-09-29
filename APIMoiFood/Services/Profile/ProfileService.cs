@@ -9,7 +9,7 @@ namespace APIMoiFood.Services.ProfileService
     public interface IProfileService
     {
         Task<dynamic?> GetProfile(int userId);
-        Task<dynamic?> UpdateProfile(int userId, UpdateProfileRequest request);
+        Task<dynamic?> UpdateProfile(int userId, UpdateProfileRequest request, IFormFile? avatarFile);
         Task<dynamic?> ChangePassword(int userId, ChangePasswordRequest request);
         Task<dynamic?> UploadAvatar(int userId, IFormFile file);
     }
@@ -36,19 +36,42 @@ namespace APIMoiFood.Services.ProfileService
                 .FirstOrDefaultAsync(x => x.UserId == userId);
             return data;
         }
-
-        public async Task<dynamic?> UpdateProfile(int userId, UpdateProfileRequest request)
+        
+        public async Task<dynamic?> UpdateProfile(int userId, UpdateProfileRequest request, IFormFile? avatarFile)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
 
+            if (avatarFile != null)
+            {
+                if (!string.IsNullOrEmpty(user.Avatar))
+                {
+                    var oldPhysicalPath = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        user.Avatar.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPhysicalPath))
+                        System.IO.File.Delete(oldPhysicalPath);
+                }
+
+                var relativePath = await CommonServices.SaveFileAsync(avatarFile, "avatars");
+                user.Avatar = relativePath;
+            }
+
             user.FullName = request.FullName;
             user.Phone = request.Phone;
-            user.Avatar = request.Avatar;
             user.Address = request.Address;
             user.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
-            return user;
+            return new
+            {
+                UserId = userId,
+                FullName = user.FullName,
+                Phone = user.Phone,
+                Address = user.Address,
+                Avatar = user.Avatar,
+                UpdatedAt = DateTime.Now,
+            };
 
         }
         public async Task<dynamic?> ChangePassword(int userId, ChangePasswordRequest request)
@@ -79,32 +102,33 @@ namespace APIMoiFood.Services.ProfileService
 
         public async Task<dynamic?> UploadAvatar(int userId, IFormFile file)
         {
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "avatars");
-            if (!Directory.Exists(folderPath))
+            var relativePath = await CommonServices.SaveFileAsync(file, "avatars");
+
+            var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+            if(user == null) return null;
+
+            if (!string.IsNullOrEmpty(user.Avatar))
             {
-                Directory.CreateDirectory(folderPath);
+                var oldPhysicalPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    user.Avatar.TrimStart('/'));
+                if (System.IO.File.Exists(oldPhysicalPath))
+                {
+                    System.IO.File.Delete(oldPhysicalPath);
+                }
             }
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            var filePath = Path.Combine(folderPath, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-            
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
-            user.Avatar = $"/avatars/{fileName}";
+            user.Avatar = relativePath;
             user.UpdatedAt = DateTime.Now;
-
             await _context.SaveChangesAsync();
 
-            return new 
-            { 
-                Message = "Upload ảnh thành công", 
-                AvatarUrl = user.Avatar 
-            };
+            return new
+            {
+                StatusCode = 200,
+                message = "Upload thành công",
+                AvatarUrl = user.Avatar,
+            };    
         }
     }
 }

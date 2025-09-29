@@ -9,7 +9,7 @@ namespace APIMoiFood.Services.FoodService
 {
     public interface IFoodService
     {
-        Task<dynamic> Modify(FoodRequest request, int id);
+        Task<dynamic> Modify(FoodRequest request, int id, IFormFile imageUrl);
         Task<dynamic> GetAll(bool? isAvailable, bool? isActive);
         Task<dynamic?> GetById(int id);
         Task<dynamic> SetActiveStatus(int id, bool isActive);
@@ -84,50 +84,29 @@ namespace APIMoiFood.Services.FoodService
                 }).FirstOrDefaultAsync();
             return data;
         }
-        public async Task<dynamic> Modify(FoodRequest request, int id)
+        public async Task<dynamic> Modify(FoodRequest request, int id, IFormFile imageUrl)
         {
+            
             try
             { 
                 var data = await _context.Foods
                     .Include(f => f.Category)
                     .FirstOrDefaultAsync(f => f.FoodId == id);
 
-                string? imageUrl = null;
-
-                if (request.ImageUrl != null && request.ImageUrl.Length > 0)
+                string? relativePath = null;
+                if (imageUrl != null)
                 {
-                    // Xoá file cũ nếu có
                     if (data != null && !string.IsNullOrEmpty(data.ImageUrl))
-                    {
-                        var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", data.ImageUrl.TrimStart('/'));
-                        if (System.IO.File.Exists(oldPath))
-                        {
-                            System.IO.File.Delete(oldPath);
-                        }
-                    }
+                        CommonServices.DeleteFileIfExists(data.ImageUrl);
 
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "foods");
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(request.ImageUrl.FileName)}";
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await request.ImageUrl.CopyToAsync(stream);
-                    }
-                    imageUrl = $"/images/foods/{fileName}";
+                    relativePath = await CommonServices.SaveFileAsync(imageUrl, "images/foods");
                 }
-
-
                 if (data != null)
                 {
                     _mapper.Map(request, data);
-                    if (imageUrl != null)
-                    {
-                        data.ImageUrl = imageUrl;
-                    }
+
+                    if (relativePath != null)
+                        data.ImageUrl = relativePath;
 
                     data.UpdatedAt = DateTime.Now;
 
@@ -143,8 +122,8 @@ namespace APIMoiFood.Services.FoodService
                 else
                 {
                     var newFood = _mapper.Map<Food>(request);
-                    if (imageUrl != null)
-                        newFood.ImageUrl = imageUrl;
+                    if (relativePath != null)
+                        newFood.ImageUrl = relativePath;
 
                     _context.Foods.Add(newFood);
                     await _context.SaveChangesAsync();

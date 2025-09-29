@@ -25,9 +25,9 @@ namespace APIMoiFood.Controllers
         [HttpPost("modify")]
         [Consumes("multipart/form-data")]
         //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Modify([FromForm] FoodRequest request, [FromQuery] int id)
+        public async Task<IActionResult> Modify([FromForm] FoodRequest request, [FromQuery] int id, IFormFile imageUrl)
         {
-            var result = await _foodService.Modify(request, id);
+            var result = await _foodService.Modify(request, id, imageUrl);
             return Ok(result);
         }
         [HttpPost("getbyid")]

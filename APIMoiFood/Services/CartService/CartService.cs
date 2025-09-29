@@ -10,7 +10,7 @@ namespace APIMoiFood.Services.CartService
     {
         // user
         Task<dynamic> GetCart(int userId);
-        Task<dynamic> AddToCart(int userId, CartItemRequest request);
+        Task<dynamic> AddToCart(int userId, CartRequest cartRequest, CartItemRequest request);
         Task<dynamic> UpdateQuantity(int userId, CartItemRequest request);
         Task<dynamic> RemoveFromCart(int userId, int foodId);
     }
@@ -53,7 +53,7 @@ namespace APIMoiFood.Services.CartService
             };
         }
 
-        public async Task<dynamic> AddToCart(int userId, CartItemRequest request)
+        public async Task<dynamic> AddToCart(int userId, CartRequest cartRequest, CartItemRequest request)
         {
             try
             {
@@ -62,11 +62,11 @@ namespace APIMoiFood.Services.CartService
                     .ThenInclude(ci => ci.Food)
                     .FirstOrDefaultAsync(c => c.UserId == userId);
 
-                if(cart == null)
+                if (cart == null)
                 {
-                    var user = new User { UserId = userId };
-                    cart = _mapper.Map<Cart>(user);
-
+                    cart = _mapper.Map<Cart>(cartRequest);
+                    cart.UserId = userId;
+   
                     _context.Carts.Add(cart);
                 }
 
@@ -100,7 +100,7 @@ namespace APIMoiFood.Services.CartService
             }
             catch (Exception ex)
             {
-                return new 
+                return new
                 {
                     StatusCode = 500,
                     Message = "Lỗi server: " + ex.Message
