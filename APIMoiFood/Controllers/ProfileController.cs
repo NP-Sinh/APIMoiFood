@@ -29,10 +29,11 @@ namespace APIMoiFood.Controllers
         }
 
         [HttpPost("update-profile")]
-        public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfileRequest request)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateProfileAsync([FromForm] UpdateProfileRequest request, IFormFile? avatarFile)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var updatedUser = await _profileService.UpdateProfile(userId, request);
+            var updatedUser = await _profileService.UpdateProfile(userId, request, avatarFile);
             return Ok(updatedUser);
         }
         [HttpPost("change-password")]
