@@ -1,6 +1,6 @@
 ﻿namespace APIMoiFood.Services.Helpers.RateLimit
 {
-    public class RateLimitConfiguration
+    public class CustomRateLimitConfiguration
     {
     }
 }
