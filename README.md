@@ -3,7 +3,7 @@
 API backend cho ứng dụng đặt món **MoiFood**
 
 ## 📌Tính năng chính
-```bash
+
 1. Gửi Email bằng Gmail
 2. JWT Authentication
 3. BCrypt.Net
@@ -11,7 +11,7 @@ API backend cho ứng dụng đặt món **MoiFood**
 5. Thanh toán MoMo
 6. Thanh toán VNPAY
 7.[AspNetCoreRateLimit](https://github.com/stefanprodan/AspNetCoreRateLimit)
-```
+
 ## 📌Thông tin test Payment
 > **Lưu ý:** Đây chỉ là tài khoản sandbox để kiểm thử, **không sử dụng cho giao dịch thật**.
 
