@@ -8,8 +8,8 @@ API backend cho ứng dụng đặt món **MoiFood**
 2. JWT Authentication
 3. BCrypt.Net
 4. AutoMapper (Tự động ánh xạ (mapping) giữa Entity và DTO)
-5. Thanh toán MoMo
-6. Thanh toán VNPAY
+5. [Thanh toán MoMo](https://github.com/momo-wallet/payment/tree/master/c%23)
+6. [Thanh toán VNPAY](https://github.com/phanxuanquang/VNPAY.NET/tree/master)
 7. [AspNetCoreRateLimit](https://github.com/stefanprodan/AspNetCoreRateLimit)
 
 ## 📌Thông tin test Payment
