@@ -7,10 +7,10 @@ API backend cho ứng dụng đặt món **MoiFood**
 1. Gửi Email bằng Gmail
 2. JWT Authentication
 3. BCrypt.Net
-4. AutoMapper(Tự động ánh xạ (mapping) giữa Entity và DTO)
+4. AutoMapper (Tự động ánh xạ (mapping) giữa Entity và DTO)
 5. Thanh toán MoMo
 6. Thanh toán VNPAY
-7.[AspNetCoreRateLimit](https://github.com/stefanprodan/AspNetCoreRateLimit)
+7. [AspNetCoreRateLimit](https://github.com/stefanprodan/AspNetCoreRateLimit)
 
 ## 📌Thông tin test Payment
 > **Lưu ý:** Đây chỉ là tài khoản sandbox để kiểm thử, **không sử dụng cho giao dịch thật**.
