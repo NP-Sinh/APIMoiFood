@@ -21,7 +21,7 @@ namespace APIMoiFood.Controllers
         [HttpGet]
         public async Task<IActionResult> GetProfileAsync()
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var user = await _profileService.GetProfile(userId);
 
             return Ok(user);
@@ -33,14 +33,14 @@ namespace APIMoiFood.Controllers
         [RequestSizeLimit(1024 * 1024 * 100)]
         public async Task<IActionResult> UpdateProfileAsync([FromForm] UpdateProfileRequest request, IFormFile? avatarFile)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var updatedUser = await _profileService.UpdateProfile(userId, request, avatarFile);
             return Ok(updatedUser);
         }
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest request)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var result = await _profileService.ChangePassword(userId, request);
             
             return Ok(result);
@@ -50,7 +50,7 @@ namespace APIMoiFood.Controllers
         [RequestSizeLimit(1024 * 1024 * 100)]
         public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var result = await _profileService.UploadAvatar(userId, request.File);
             return Ok(result);
         }

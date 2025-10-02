@@ -77,7 +77,7 @@ namespace APIMoiFood.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var result = await _authService.Logout(userId, request);
 

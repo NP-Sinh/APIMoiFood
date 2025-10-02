@@ -39,7 +39,7 @@ namespace APIMoiFood.Controllers
         [HttpGet("user-spending")]
         public async Task<IActionResult> GetUserSpending(DateTime? fromDate, DateTime? toDate, string groupBy)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var result = await _statisticsService.GetUserSpendingAsync(userId, fromDate, toDate, groupBy);
             return Ok(result);
         }
