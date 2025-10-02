@@ -102,7 +102,6 @@ namespace APIMoiFood.Services.FoodService
                 {
                     _mapper.Map(request, data);
                     data.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
-
                     data.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
@@ -117,7 +116,7 @@ namespace APIMoiFood.Services.FoodService
                 else
                 {
                     var newFood = _mapper.Map<Food>(request);
-                        newFood.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
+                    newFood.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
 
                     _context.Foods.Add(newFood);
                     await _context.SaveChangesAsync();
