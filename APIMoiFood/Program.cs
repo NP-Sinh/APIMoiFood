@@ -22,7 +22,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
-using VNPAY.NET;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,10 +41,17 @@ builder.WebHost.ConfigureKestrel(options =>
         listenOptions.UseHttps(); // HTTPS
     });
 });
+
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 104857600; // 100 MB
 });
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 104857600; // 100 MB
+});
+
 
 builder.Services.AddControllers().AddJsonOptions(opt =>
 {

@@ -30,6 +30,7 @@ namespace APIMoiFood.Controllers
 
         [HttpPost("update-profile")]
         [Consumes("multipart/form-data")]
+        [RequestSizeLimit(1024 * 1024 * 100)]
         public async Task<IActionResult> UpdateProfileAsync([FromForm] UpdateProfileRequest request, IFormFile? avatarFile)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -46,6 +47,7 @@ namespace APIMoiFood.Controllers
         }
         [HttpPost("upload-avatar")]
         [Consumes("multipart/form-data")]
+        [RequestSizeLimit(1024 * 1024 * 100)]
         public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));

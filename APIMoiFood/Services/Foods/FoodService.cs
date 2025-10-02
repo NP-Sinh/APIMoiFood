@@ -9,7 +9,7 @@ namespace APIMoiFood.Services.FoodService
 {
     public interface IFoodService
     {
-        Task<dynamic> Modify(FoodRequest request, int id, IFormFile imageUrl);
+        Task<dynamic> Modify(FoodRequest request, int id);
         Task<dynamic> GetAll(bool? isAvailable, bool? isActive);
         Task<dynamic?> GetById(int id);
         Task<dynamic> SetActiveStatus(int id, bool isActive);
@@ -84,7 +84,7 @@ namespace APIMoiFood.Services.FoodService
                 }).FirstOrDefaultAsync();
             return data;
         }
-        public async Task<dynamic> Modify(FoodRequest request, int id, IFormFile imageUrl)
+        public async Task<dynamic> Modify(FoodRequest request, int id)
         {
             
             try
@@ -93,20 +93,15 @@ namespace APIMoiFood.Services.FoodService
                     .Include(f => f.Category)
                     .FirstOrDefaultAsync(f => f.FoodId == id);
 
-                string? relativePath = null;
-                if (imageUrl != null)
+                if (data != null && !string.IsNullOrEmpty(data.ImageUrl))
                 {
-                    if (data != null && !string.IsNullOrEmpty(data.ImageUrl))
-                        CommonServices.DeleteFileIfExists(data.ImageUrl);
+                    CommonServices.DeleteFileIfExists(data.ImageUrl);
+                }    
 
-                    relativePath = await CommonServices.CompressedImage(imageUrl, "images/foods");
-                }
                 if (data != null)
                 {
                     _mapper.Map(request, data);
-
-                    if (relativePath != null)
-                        data.ImageUrl = relativePath;
+                    data.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
 
                     data.UpdatedAt = DateTime.Now;
 
@@ -122,8 +117,7 @@ namespace APIMoiFood.Services.FoodService
                 else
                 {
                     var newFood = _mapper.Map<Food>(request);
-                    if (relativePath != null)
-                        newFood.ImageUrl = relativePath;
+                        newFood.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
 
                     _context.Foods.Add(newFood);
                     await _context.SaveChangesAsync();

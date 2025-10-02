@@ -24,10 +24,12 @@ namespace APIMoiFood.Controllers
 
         [HttpPost("modify")]
         [Consumes("multipart/form-data")]
+        [RequestSizeLimit(5 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 5 * 1024 * 1024)]
         //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Modify([FromForm] FoodRequest request, [FromQuery] int id, IFormFile imageUrl)
+        public async Task<IActionResult> Modify([FromForm] FoodRequest request, [FromQuery] int id)
         {
-            var result = await _foodService.Modify(request, id, imageUrl);
+            var result = await _foodService.Modify(request, id);
             return Ok(result);
         }
         [HttpPost("getbyid")]
