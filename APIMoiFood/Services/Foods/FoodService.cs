@@ -99,7 +99,7 @@ namespace APIMoiFood.Services.FoodService
                     if (data != null && !string.IsNullOrEmpty(data.ImageUrl))
                         CommonServices.DeleteFileIfExists(data.ImageUrl);
 
-                    relativePath = await CommonServices.SaveFileAsync(imageUrl, "images/foods");
+                    relativePath = await CommonServices.CompressedImage(imageUrl, "images/foods");
                 }
                 if (data != null)
                 {
