@@ -1,5 +1,8 @@
 ﻿using System.Text;
 using System.Threading.Tasks;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 
 namespace APIMoiFood.Services
 {
@@ -56,10 +59,55 @@ namespace APIMoiFood.Services
         public static void DeleteFileIfExists(string relativePath)
         {
             if (string.IsNullOrEmpty(relativePath)) return;
-
+            
             var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath.TrimStart('/'));
             if (File.Exists(path)) File.Delete(path);
         }
 
+        // Nén ảnh
+        public static async Task<string> CompressedImage(IFormFile formFile, string folderName, int maxWidth = 800, int maxHeight = 800, int quality = 80, int minSizeToCompressKB = 200)
+        {
+            if (formFile == null || formFile.Length == 0)
+                throw new ArgumentException("File ảnh không hợp lệ");
+
+            var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", folderName);
+            if (!Directory.Exists(rootPath))
+                Directory.CreateDirectory(rootPath);
+
+            var originalName = Path.GetFileNameWithoutExtension(formFile.FileName);
+            var safeName = string.Concat(originalName.Split(Path.GetInvalidFileNameChars()));
+
+            var fileName = safeName + ".jpg";
+            var filePath = Path.Combine(rootPath, fileName);
+            int count = 1;
+            while (File.Exists(filePath))
+            {
+                fileName = $"{safeName}_{count}.jpg";
+                filePath = Path.Combine(rootPath, fileName);
+                count++;
+            }
+
+            // nếu ảnh nhỏ hơn minSizeToCompressKB thì không nén
+            if (formFile.Length < minSizeToCompressKB * 1024)
+            {
+                await using var fs = new FileStream(filePath, FileMode.Create);
+                await formFile.CopyToAsync(fs);
+                return $"/{folderName}/{fileName}";
+            }
+
+            using var image = await Image.LoadAsync(formFile.OpenReadStream());
+            image.Mutate(x => x.Resize(new ResizeOptions
+            {
+                Mode = ResizeMode.Max,
+                Size = new Size(maxWidth, maxHeight)
+            }));
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await image.SaveAsJpegAsync(stream, new JpegEncoder 
+            { 
+                Quality = quality 
+            });
+            return $"/{folderName}/{fileName}";
+        }
     }
 }

@@ -45,15 +45,10 @@ namespace APIMoiFood.Services.ProfileService
             {
                 if (!string.IsNullOrEmpty(user.Avatar))
                 {
-                    var oldPhysicalPath = Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot",
-                        user.Avatar.TrimStart('/'));
-                    if (System.IO.File.Exists(oldPhysicalPath))
-                        System.IO.File.Delete(oldPhysicalPath);
+                    CommonServices.DeleteFileIfExists(user.Avatar);
                 }
 
-                var relativePath = await CommonServices.SaveFileAsync(avatarFile, "avatars");
+                var relativePath = await CommonServices.CompressedImage(avatarFile, "avatars");
                 user.Avatar = relativePath;
             }
 
@@ -102,24 +97,15 @@ namespace APIMoiFood.Services.ProfileService
 
         public async Task<dynamic?> UploadAvatar(int userId, IFormFile file)
         {
-            var relativePath = await CommonServices.SaveFileAsync(file, "avatars");
-
             var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
             if(user == null) return null;
 
             if (!string.IsNullOrEmpty(user.Avatar))
             {
-                var oldPhysicalPath = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "wwwroot",
-                    user.Avatar.TrimStart('/'));
-                if (System.IO.File.Exists(oldPhysicalPath))
-                {
-                    System.IO.File.Delete(oldPhysicalPath);
-                }
+                CommonServices.DeleteFileIfExists(user.Avatar);
             }
 
-            user.Avatar = relativePath;
+            user.Avatar = await CommonServices.CompressedImage(file, "avatars");
             user.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
