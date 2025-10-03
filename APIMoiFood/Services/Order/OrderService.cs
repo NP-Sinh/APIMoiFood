@@ -1,14 +1,8 @@
 ﻿using APIMoiFood.Models.DTOs.Order;
-using APIMoiFood.Models.DTOs.Payment;
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
-using APIMoiFood.Services.PaymentService;
-using APIMoiFood.Services.PaymentService.MomoService;
-using APIMoiFood.Services.PaymentService.VnpayService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using VNPAY.NET.Models;
 
 namespace APIMoiFood.Services.OrderService
 {

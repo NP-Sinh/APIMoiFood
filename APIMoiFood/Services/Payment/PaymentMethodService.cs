@@ -1,6 +1,5 @@
 ﻿using APIMoiFood.Models.DTOs.Payment;
 using APIMoiFood.Models.Entities;
-using APIMoiFood.Models.Mapping;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 

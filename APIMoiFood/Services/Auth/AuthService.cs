@@ -1,5 +1,4 @@
-﻿using APIMoiFood.Controllers;
-using APIMoiFood.Models.DTOs.Auth;
+﻿using APIMoiFood.Models.DTOs.Auth;
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
 using APIMoiFood.Services.EmailService;

@@ -1,8 +1,5 @@
-﻿using APIMoiFood.Models.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
-using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Web;
 

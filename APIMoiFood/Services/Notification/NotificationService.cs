@@ -3,7 +3,6 @@ using APIMoiFood.Models.Entities;
 using AutoMapper.Internal;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace APIMoiFood.Services.NotificationService
 {
