@@ -30,7 +30,9 @@ namespace APIMoiFood.Services.FoodService
         }
         public async Task<dynamic> GetAll(bool? isAvailable, bool? isActive)
         {
-            var query = _context.Foods.AsQueryable();
+            var query = _context.Foods
+            .AsNoTracking()
+            .AsQueryable();
 
             if (isAvailable.HasValue)
             {
@@ -89,17 +91,14 @@ namespace APIMoiFood.Services.FoodService
             
             try
             { 
-                var data = await _context.Foods
-                    .Include(f => f.Category)
-                    .FirstOrDefaultAsync(f => f.FoodId == id);
-
-                if (data != null && !string.IsNullOrEmpty(data.ImageUrl))
-                {
-                    CommonServices.DeleteFileIfExists(data.ImageUrl);
-                }    
+                var data = await _context.Foods.FirstOrDefaultAsync(f => f.FoodId == id);
 
                 if (data != null)
                 {
+                    if (!string.IsNullOrEmpty(data.ImageUrl))
+                    {
+                        CommonServices.DeleteFileIfExists(data.ImageUrl);
+                    } 
                     _mapper.Map(request, data);
                     data.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
                     data.UpdatedAt = DateTime.Now;
@@ -118,7 +117,7 @@ namespace APIMoiFood.Services.FoodService
                     var newFood = _mapper.Map<Food>(request);
                     newFood.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
 
-                    _context.Foods.Add(newFood);
+                    await _context.Foods.AddAsync(newFood);
                     await _context.SaveChangesAsync();
 
                     await _notificationService.SendGlobalNotification("Món mới",

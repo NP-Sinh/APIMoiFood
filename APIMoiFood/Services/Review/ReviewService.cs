@@ -1,6 +1,5 @@
 ﻿using APIMoiFood.Models.DTOs.ReviewRequest;
 using APIMoiFood.Models.Entities;
-using APIMoiFood.Models.Mapping;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +20,7 @@ namespace APIMoiFood.Services.ReviewService
     public class ReviewService : IReviewService
     {
         private readonly MoiFoodDBContext _context;
-        private readonly AutoMapper.IMapper _map;
+        private readonly IMapper _map;
         public ReviewService(MoiFoodDBContext context, IMapper map)
         {
             _context = context;

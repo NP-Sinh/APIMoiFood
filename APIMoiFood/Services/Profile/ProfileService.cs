@@ -1,8 +1,6 @@
-﻿using APIMoiFood.Controllers;
-using APIMoiFood.Models.DTOs.Profile;
+﻿using APIMoiFood.Models.DTOs.Profile;
 using APIMoiFood.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace APIMoiFood.Services.ProfileService
 {

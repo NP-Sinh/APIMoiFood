@@ -2,9 +2,7 @@
 using APIMoiFood.Models.Entities;
 using APIMoiFood.Models.Mapping;
 using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace APIMoiFood.Services.CategoryService
 {
