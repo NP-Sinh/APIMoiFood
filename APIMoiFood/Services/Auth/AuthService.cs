@@ -71,7 +71,7 @@ namespace APIMoiFood.Services.AuthService
                     u.Username == request.UsernameOrEmail ||
                     u.Email == request.UsernameOrEmail);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (user == null || !CommonServices.VerifyPassword(request.Password, user.PasswordHash))
                 return null;
 
             var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "User");
