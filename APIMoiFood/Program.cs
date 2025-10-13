@@ -123,7 +123,7 @@ if (app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.MapHub<NotificationHub>("/hubs/notification");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

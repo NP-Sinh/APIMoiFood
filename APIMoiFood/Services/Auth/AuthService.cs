@@ -109,20 +109,24 @@ namespace APIMoiFood.Services.AuthService
                 return new { statusCode = 400, message = "OTP không hợp lệ hoặc đã hết hạn" };
             }
 
-            _cache.Set($"verified_{request.Email}", request.Email, TimeSpan.FromMinutes(5));
-            _cache.Remove(cacheKey);
-
+            // Không xóa OTP sau khi verify
             return new { statusCode = 200, message = "Xác thực OTP thành công." };
         }
 
         public async Task<dynamic?> ResetPasswordAsync(ResetPasswordRequest request)
         {
-            if (!_cache.TryGetValue($"verified_{request.Email}", out string? email))
+            var cacheKey = $"otp_{request.Email}";
+            if (!_cache.TryGetValue(cacheKey, out string? cachedOtp) || cachedOtp != request.Otp)
             {
-                return new { statusCode = 400, message = "Bạn chưa xác thực OTP hoặc OTP đã hết hạn" };
+                return new { statusCode = 400, message = "OTP không hợp lệ hoặc đã hết hạn" };
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                return new { statusCode = 400, message = "Mật khẩu nhập lại không khớp" };
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
             {
                 return new { statusCode = 400, message = "Người dùng không tồn tại" };
@@ -131,10 +135,14 @@ namespace APIMoiFood.Services.AuthService
             user.PasswordHash = CommonServices.HashPassword(request.NewPassword);
             await _context.SaveChangesAsync();
 
-            _cache.Remove($"verified_{request.Email}");
+            // Có thể giữ hoặc xóa OTP sau khi reset, tùy nhu cầu bảo mật
+            _cache.Remove(cacheKey); // xóa OTP sau khi reset
 
             return new { statusCode = 200, message = "Đặt lại mật khẩu thành công." };
         }
+
+
+
 
         public async Task<dynamic?> ResendOtp(ForgotPasswordRequest request)
         {
@@ -166,7 +174,7 @@ namespace APIMoiFood.Services.AuthService
 
         private async Task SendOtpAsync(string email, string subject)
         {
-            var otp = CommonServices.GenerateOTP(8);
+            var otp = CommonServices.GenerateOTP(6);
             _cache.Set($"otp_{email}", otp, TimeSpan.FromMinutes(5));
 
             await _emailService.SendEmailAsync(email, subject,
