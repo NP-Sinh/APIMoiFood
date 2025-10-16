@@ -155,18 +155,10 @@ namespace APIMoiFood.Services.FoodService
                     .ToListAsync();
             }
 
-            keyword = keyword.Trim().ToLower();
+            keyword = CommonServices.RemoveDiacritics(keyword.Trim().ToLower());
 
-            var query = _context.Foods
+            var foods = await _context.Foods
                 .AsNoTracking()
-                .Where(f =>
-                    f.Name.ToLower().Contains(keyword) ||
-                    f.Description.ToLower().Contains(keyword) ||
-                    f.Price.ToString().Contains(keyword) ||
-                    (f.Category != null && f.Category.Name.ToLower().Contains(keyword))
-                );
-
-            return await query
                 .Select(f => new
                 {
                     f.FoodId,
@@ -185,6 +177,16 @@ namespace APIMoiFood.Services.FoodService
                     f.UpdatedAt
                 })
                 .ToListAsync();
+
+            return foods
+                .Where(f =>
+                    CommonServices.RemoveDiacritics(f.Name.ToLower()).Contains(keyword) ||
+                    CommonServices.RemoveDiacritics(f.Description.ToLower()).Contains(keyword) ||
+                    f.Price.ToString().Contains(keyword) ||
+                    (f.Category != null && CommonServices.RemoveDiacritics(f.Category.Name.ToLower()).Contains(keyword))
+                )
+                .ToList();
+
         }
 
         public async Task<dynamic> Modify(FoodRequest request, int id)
