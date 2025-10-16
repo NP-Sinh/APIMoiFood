@@ -11,6 +11,8 @@ namespace APIMoiFood.Services.FoodService
     {
         Task<dynamic> Modify(FoodRequest request, int id);
         Task<dynamic> GetAll(bool? isAvailable, bool? isActive);
+        Task<dynamic> GetByCategory(int categoryId, bool? isAvailable, bool? isActive);
+        Task<dynamic> Search(string keyword);
         Task<dynamic?> GetById(int id);
         Task<dynamic> SetActiveStatus(int id, bool isActive);
         Task<dynamic> SetAvailableStatus(int id, bool isAvailable);
@@ -86,6 +88,105 @@ namespace APIMoiFood.Services.FoodService
                 }).FirstOrDefaultAsync();
             return data;
         }
+        public async Task<dynamic> GetByCategory(int categoryId, bool? isAvailable, bool? isActive)
+        {
+            var query = _context.Foods
+                .AsNoTracking()
+                .Include(f => f.Category)
+                .Where(f => f.CategoryId == categoryId)
+                .AsQueryable();
+
+            if (isAvailable.HasValue)
+                query = query.Where(f => f.IsAvailable == isAvailable.Value);
+
+            if (isActive.HasValue)
+                query = query.Where(f => f.IsActive == isActive.Value);
+
+            var result = await query
+                .Select(f => new
+                {
+                    f.FoodId,
+                    f.Name,
+                    f.Description,
+                    f.Price,
+                    f.ImageUrl,
+                    Category = new
+                    {
+                        f.Category.CategoryId,
+                        f.Category.Name
+                    },
+                    f.IsAvailable,
+                    f.IsActive,
+                    f.CreatedAt,
+                    f.UpdatedAt
+                })
+                .ToListAsync();
+
+            return new
+            {
+                StatusCode = 200,
+                Message = "Lấy danh sách món theo danh mục thành công",
+                Data = result
+            };
+        }
+        public async Task<dynamic> Search(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return await _context.Foods
+                    .AsNoTracking()
+                    .Select(f => new
+                    {
+                        f.FoodId,
+                        f.Name,
+                        f.Description,
+                        f.Price,
+                        f.ImageUrl,
+                        Category = f.Category != null ? new
+                        {
+                            f.Category.CategoryId,
+                            f.Category.Name
+                        } : null,
+                        f.IsAvailable,
+                        f.IsActive,
+                        f.CreatedAt,
+                        f.UpdatedAt
+                    })
+                    .ToListAsync();
+            }
+
+            keyword = keyword.Trim().ToLower();
+
+            var query = _context.Foods
+                .AsNoTracking()
+                .Where(f =>
+                    f.Name.ToLower().Contains(keyword) ||
+                    f.Description.ToLower().Contains(keyword) ||
+                    f.Price.ToString().Contains(keyword) ||
+                    (f.Category != null && f.Category.Name.ToLower().Contains(keyword))
+                );
+
+            return await query
+                .Select(f => new
+                {
+                    f.FoodId,
+                    f.Name,
+                    f.Description,
+                    f.Price,
+                    f.ImageUrl,
+                    Category = f.Category != null ? new
+                    {
+                        f.Category.CategoryId,
+                        f.Category.Name
+                    } : null,
+                    f.IsAvailable,
+                    f.IsActive,
+                    f.CreatedAt,
+                    f.UpdatedAt
+                })
+                .ToListAsync();
+        }
+
         public async Task<dynamic> Modify(FoodRequest request, int id)
         {
             

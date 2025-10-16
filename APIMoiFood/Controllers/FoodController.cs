@@ -39,6 +39,19 @@ namespace APIMoiFood.Controllers
 
             return Ok(result);
         }
+        [HttpGet("get-by-category")]
+        public async Task<IActionResult> GetByCategory(int categoryId, bool? isAvailable, bool? isActive)
+        {
+            var result = await _foodService.GetByCategory(categoryId, isAvailable, isActive);
+            return Ok(result);
+        }
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(string keyword)
+        {
+            var result = await _foodService.Search(keyword);
+            return Ok(result);
+        }
+
         [HttpPost("set-active-status")]
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> SetActiveStatus(int id, bool isActive)
