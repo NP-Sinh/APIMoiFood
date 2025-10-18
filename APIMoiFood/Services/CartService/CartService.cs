@@ -37,6 +37,8 @@ namespace APIMoiFood.Services.CartService
                         ci.FoodId,
                         ci.Quantity,
                         Price = ci.Food!.Price,
+                        FoodName = ci.Food!.Name,
+                        ImageUrl = ci.Food!.ImageUrl,
                         Total = (ci.Food!.Price) * ci.Quantity,
                     })
                 })
