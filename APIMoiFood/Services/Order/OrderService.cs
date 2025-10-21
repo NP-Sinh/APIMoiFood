@@ -9,7 +9,7 @@ namespace APIMoiFood.Services.OrderService
     public interface IOrderService
     {
         Task<dynamic> CreateOrder(int userId, OrderRequest request);
-        Task<dynamic> GetOrdersByUserId(int userId);
+        Task<dynamic> GetOrdersByUserId(int userId, string orderStatus);
         Task<dynamic> GetOrderDetails(int userId, int orderId);
         Task<dynamic> ConfirmReceived(int userId, int orderId);
 
@@ -29,20 +29,29 @@ namespace APIMoiFood.Services.OrderService
             _mapper = mapper;
 
         }
-        public async Task<dynamic> GetOrdersByUserId(int userId)
+        public async Task<dynamic> GetOrdersByUserId(int userId, string? orderStatus)
         {
+            var query = _context.Orders
+                .Where(o => o.UserId == userId);
 
-            var orders = await _context.Orders
-                .Where (o => o.UserId == userId)
+            if (!string.IsNullOrWhiteSpace(orderStatus))
+            {
+                query = query.Where(o => o.OrderStatus == orderStatus);
+            }
+
+            var orders = await query
                 .OrderByDescending(o => o.CreatedAt)
                 .Select(o => new
                 {
                     o.OrderId,
                     o.CreatedAt,
+                    o.OrderStatus,
+                    o.TotalAmount,
                     Items = o.OrderItems.Select(oi => new
                     {
                         oi.FoodId,
-                        oi.Food!.Name,
+                        FoodName = oi.Food!.Name,
+                        FoodImageUrl = oi.Food!.ImageUrl,
                         oi.Price,
                         oi.Quantity,
                         oi.Note,
@@ -51,14 +60,13 @@ namespace APIMoiFood.Services.OrderService
                     {
                         MethodName = p.Method.Name,
                         p.Amount,
-
                     })
-
                 })
                 .ToListAsync();
 
             return orders;
         }
+
         public async Task<dynamic> GetOrderDetails(int userId, int orderId)
         {
             var order = await _context.Orders

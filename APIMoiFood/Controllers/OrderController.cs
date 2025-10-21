@@ -24,10 +24,10 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
         [HttpGet("get-orders")]
-        public async Task<IActionResult> GetOrders()
+        public async Task<IActionResult> GetOrders(string? orderStatus)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var result = await _orderService.GetOrdersByUserId(userId);
+            var result = await _orderService.GetOrdersByUserId(userId, orderStatus!);
             return Ok(result);
         }
         [HttpGet("get-order-details")]
