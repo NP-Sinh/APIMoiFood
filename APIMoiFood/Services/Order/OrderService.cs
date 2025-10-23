@@ -47,6 +47,7 @@ namespace APIMoiFood.Services.OrderService
                     o.CreatedAt,
                     o.OrderStatus,
                     o.TotalAmount,
+                    o.PaymentStatus,
                     Items = o.OrderItems.Select(oi => new
                     {
                         oi.FoodId,
@@ -59,6 +60,7 @@ namespace APIMoiFood.Services.OrderService
                     Payments = o.Payments.Select(p => new
                     {
                         MethodName = p.Method.Name,
+                        p.PaymentStatus,
                         p.Amount,
                     })
                 })
@@ -76,6 +78,8 @@ namespace APIMoiFood.Services.OrderService
                             o.OrderId,
                             o.CreatedAt,
                             o.TotalAmount,
+                            o.OrderStatus,        
+                            o.PaymentStatus,      
                             Items = o.OrderItems.Select(oi => new
                             {
                                 oi.OrderItemId,
@@ -96,12 +100,12 @@ namespace APIMoiFood.Services.OrderService
                                 p.PaymentId,
                                 p.Amount,
                                 p.PaymentStatus,
-                                Method = p.Method.Name
+                                MethodName = p.Method.Name
                             })
                         })
                         .FirstOrDefaultAsync();
 
-            return order!;
+            return order;
         }
         public async Task<dynamic> CreateOrder(int userId, OrderRequest request)
         {
