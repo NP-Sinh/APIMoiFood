@@ -30,7 +30,7 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("modify")]
         public async Task<IActionResult> Modify(int id, [FromBody] CategoryRequest request)
         {
@@ -38,14 +38,14 @@ namespace APIMoiFood.Controllers
             return Ok(rs);
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("delete-Category")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var rs = await _categoryService.Delete(id);
             return Ok(rs);
         }
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("restore-Category")]
         public async Task<IActionResult> RestoreCategory(int id)
         {

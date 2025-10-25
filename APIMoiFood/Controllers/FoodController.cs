@@ -26,7 +26,7 @@ namespace APIMoiFood.Controllers
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(5 * 1024 * 1024)]
         [RequestFormLimits(MultipartBodyLengthLimit = 5 * 1024 * 1024)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Modify([FromForm] FoodRequest request, [FromQuery] int id)
         {
             var result = await _foodService.Modify(request, id);
@@ -53,7 +53,7 @@ namespace APIMoiFood.Controllers
         }
 
         [HttpPost("set-active-status")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SetActiveStatus(int id, bool isActive)
         {
             var result = await _foodService.SetActiveStatus(id, isActive);
@@ -61,7 +61,7 @@ namespace APIMoiFood.Controllers
         }
 
         [HttpPost("set-available-status")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SetAvailableStatus(int id, bool isAvailable)
         {
             var result = await _foodService.SetAvailableStatus(id, isAvailable);
@@ -69,7 +69,7 @@ namespace APIMoiFood.Controllers
         }
 
         [HttpPost("delete")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id, bool isActive)
         {
             var result = await _foodService.Delete(id, isActive);

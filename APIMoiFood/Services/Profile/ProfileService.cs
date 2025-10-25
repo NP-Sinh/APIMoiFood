@@ -30,6 +30,8 @@ namespace APIMoiFood.Services.ProfileService
                     Phone = x.Phone,
                     Address = x.Address,
                     Avatar = x.Avatar,
+                    Role = x.Role,        
+                    IsActive = x.IsActive 
                 })
                 .FirstOrDefaultAsync(x => x.UserId == userId);
             return data;

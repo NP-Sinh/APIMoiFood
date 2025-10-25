@@ -85,7 +85,8 @@ namespace APIMoiFood.Services.AuthService
                 Token = jwtToken,
                 TokenExpiry = DateTime.UtcNow.AddHours(24),
                 RefreshToken = refreshEntity.RefreshToken1,
-                RefreshTokenExpiry = refreshEntity.ExpiryDate
+                RefreshTokenExpiry = refreshEntity.ExpiryDate,
+                 Role = user.Role,
             };
         }
 
