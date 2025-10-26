@@ -46,6 +46,13 @@ namespace APIMoiFood.Controllers
             return Ok(rs);
         }
         [Authorize(Roles = "Admin")]
+        [HttpGet("get-deleted")]
+        public async Task<IActionResult> GetDeleted()
+        {
+            var result = await _categoryService.GetDeleted();
+            return Ok(result);
+        }
+        [Authorize(Roles = "Admin")]
         [HttpPost("restore-Category")]
         public async Task<IActionResult> RestoreCategory(int id)
         {

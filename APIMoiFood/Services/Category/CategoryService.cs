@@ -10,6 +10,7 @@ namespace APIMoiFood.Services.CategoryService
     {
         Task<dynamic> Modify(CategoryRequest request, int id);
         Task<dynamic> GetAll();
+        Task<dynamic> GetDeleted();
         Task<dynamic?> GetById(int id);
         Task<dynamic> Delete(int id);
         Task<dynamic> Restore(int id);
@@ -48,6 +49,18 @@ namespace APIMoiFood.Services.CategoryService
                     Description = c.Description
                 }).FirstOrDefaultAsync();
 
+            return data;
+        }
+        public async Task<dynamic> GetDeleted()
+        {
+            var data = await _context.Categories.Where(c => c.IsActive == true)
+                .Select(c => new
+                {
+                    CategoryId = c.CategoryId,
+                    Name = c.Name,
+                    Description = c.Description
+                })
+                .ToListAsync();
             return data;
         }
         public async Task<dynamic> Modify(CategoryRequest request, int id)
