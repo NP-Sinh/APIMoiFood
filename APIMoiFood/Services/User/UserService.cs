@@ -33,6 +33,7 @@ namespace APIMoiFood.Services.UserService
                    .Select(x => new
                    {
                        x.UserId,
+                       x.Username,
                        x.FullName,
                        x.Avatar,
                        x.Email,
@@ -54,6 +55,7 @@ namespace APIMoiFood.Services.UserService
                 .Select(x => new
                 {
                     x.UserId,
+                    x.Username,
                     x.FullName,
                     x.Avatar,
                     x.Email,
@@ -77,6 +79,7 @@ namespace APIMoiFood.Services.UserService
                     .Select(x => new
                     {
                         x.UserId,
+                        x.Username,
                         x.FullName,
                         x.Avatar,
                         x.Email,
@@ -96,6 +99,7 @@ namespace APIMoiFood.Services.UserService
                 .Select(x => new
                 {
                     x.UserId,
+                    x.Username,
                     x.FullName,
                     x.Avatar,
                     x.Email,

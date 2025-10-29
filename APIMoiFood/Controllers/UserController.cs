@@ -33,7 +33,7 @@ namespace APIMoiFood.Controllers
             var result = await _userService.searchUser(keyword);
             return Ok(result);
         }
-        [HttpGet("set-active-user")]
+        [HttpPost("set-active-user")]
         public async Task<IActionResult> setActiveUser(int id, bool isActive)
         {
             var result = await _userService.setActiveUser(id, isActive);
