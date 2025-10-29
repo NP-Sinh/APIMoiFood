@@ -48,7 +48,7 @@ namespace APIMoiFood.Services.OrderService
                     o.OrderStatus,
                     o.TotalAmount,
                     o.PaymentStatus,
-                    Items = o.OrderItems.Select(oi => new
+                    OrderItems = o.OrderItems.Select(oi => new
                     {
                         oi.FoodId,
                         FoodName = oi.Food!.Name,
@@ -79,8 +79,8 @@ namespace APIMoiFood.Services.OrderService
                             o.CreatedAt,
                             o.TotalAmount,
                             o.OrderStatus,        
-                            o.PaymentStatus,      
-                            Items = o.OrderItems.Select(oi => new
+                            o.PaymentStatus,
+                            OrderItems = o.OrderItems.Select(oi => new
                             {
                                 oi.OrderItemId,
                                 oi.Quantity,
@@ -89,9 +89,9 @@ namespace APIMoiFood.Services.OrderService
                                 Food = new
                                 {
                                     oi.Food.FoodId,
-                                    oi.Food.Name,
+                                    FoodName = oi.Food!.Name,
+                                    FoodImageUrl = oi.Food!.ImageUrl,
                                     oi.Food.Price,
-                                    oi.Food.ImageUrl,
                                     oi.Food.IsAvailable,
                                 }
                             }),
@@ -222,24 +222,31 @@ namespace APIMoiFood.Services.OrderService
                 .OrderByDescending(o => o.CreatedAt)
                 .Select(o => new
                 {
+                    o.UserId,
+                    FullName = o.User.FullName,
+                    Phone = o.User.Phone,
                     o.OrderId,
-                    UserName = o.User.FullName,
+                    o.CreatedAt,
                     o.TotalAmount,
                     o.OrderStatus,
                     o.PaymentStatus,
-                    o.CreatedAt,
-                    ItemCount = o.OrderItems.Count,
-                    Food = o.OrderItems.Select(oi => new
+                    o.DeliveryAddress,
+                    o.Note,
+                    OrderItems = o.OrderItems.Select(oi => new
                     {
-                        oi.Food.Name,
+                        oi.FoodId,
+                        FoodName = oi.Food!.Name,
+                        FoodImageUrl = oi.Food!.ImageUrl,
+                        oi.Price,
                         oi.Quantity,
-                        oi.Price
+                        oi.Note,
                     }),
-                    PaymentMethods = o.Payments.Select(p => new
+                    Payments = o.Payments.Select(p => new
                     {
-                        p.Method.Name,
+                        MethodName = p.Method.Name,
+                        p.PaymentStatus,
                         p.Amount,
-                        p.PaymentStatus
+
                     })
                 })
                 .ToListAsync();
@@ -256,12 +263,20 @@ namespace APIMoiFood.Services.OrderService
                  .Select(o => new
                  {
                      o.UserId,
+                     FullName = o.User.FullName,
+                     Phone = o.User.Phone,
                      o.OrderId,
                      o.CreatedAt,
-                     Items = o.OrderItems.Select(oi => new
+                     o.TotalAmount,
+                     o.OrderStatus,
+                     o.PaymentStatus,
+                     o.DeliveryAddress,
+                     o.Note,
+                     OrderItems = o.OrderItems.Select(oi => new
                      {
                          oi.FoodId,
-                         oi.Food!.Name,
+                         FoodName = oi.Food!.Name,
+                         FoodImageUrl = oi.Food!.ImageUrl,
                          oi.Price,
                          oi.Quantity,
                          oi.Note,
@@ -269,6 +284,7 @@ namespace APIMoiFood.Services.OrderService
                      Payments = o.Payments.Select(p => new
                      {
                          MethodName = p.Method.Name,
+                         p.PaymentStatus,
                          p.Amount,
 
                      })
