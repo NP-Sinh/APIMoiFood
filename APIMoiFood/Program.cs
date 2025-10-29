@@ -15,6 +15,7 @@ using APIMoiFood.Services.PaymentService.VnpayService;
 using APIMoiFood.Services.ProfileService;
 using APIMoiFood.Services.ReviewService;
 using APIMoiFood.Services.Statistics.StatisticsService;
+using APIMoiFood.Services.UserService;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
@@ -101,7 +102,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IVnpayService, VnpayService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
-
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
