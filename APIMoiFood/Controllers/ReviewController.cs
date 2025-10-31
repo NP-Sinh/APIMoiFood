@@ -37,7 +37,7 @@ namespace APIMoiFood.Controllers
             var result = await _reviewService.Delete(userId, reviewId);
             return Ok(result);
         }
-        [HttpGet("get-all-review")]
+        [HttpGet("get-all-reviews")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllReview()
         {
@@ -60,9 +60,9 @@ namespace APIMoiFood.Controllers
         }
         [HttpGet("filter-reviews")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> FilterReviews(int? foodId, int? userId, int? minRating, int? maxRating, DateTime? fromDate, DateTime? toDate)
+        public async Task<IActionResult> FilterReviews(string? foodName, string? fullName, int? minRating, int? maxRating, DateTime? fromDate, DateTime? toDate)
         {
-            var result = await _reviewService.FilterReviews(foodId, userId, minRating, maxRating, fromDate, toDate);
+            var result = await _reviewService.FilterReviews(foodName, fullName, minRating, maxRating, fromDate, toDate);
             return Ok(result);
         }
     }

@@ -14,7 +14,7 @@ namespace APIMoiFood.Services.ReviewService
         // Admin
         Task<dynamic> GetReviewAll();
         Task<dynamic> DeleteByAdmin(int reviewId);
-        Task<dynamic> FilterReviews(int? foodId, int? userId,int? minRating, int? maxRating, DateTime? fromDate, DateTime? toDate);
+        Task<dynamic> FilterReviews(string? foodName, string? fullName, int? minRating, int? maxRating, DateTime? fromDate, DateTime? toDate);
 
     }
     public class ReviewService : IReviewService
@@ -33,10 +33,14 @@ namespace APIMoiFood.Services.ReviewService
                 { 
                     r.ReviewId,
                     r.UserId,
+                    FullName = r.User.FullName,
+                    Phone = r.User.Phone,
                     Food = new
                     {
                         foodId = r.Food.FoodId,
                         foodName = r.Food.Name,
+                        FoodImageUrl = r.Food!.ImageUrl,
+                        Price = r.Food.Price,
                     },
                     r.Rating,
                     r.Comment,
@@ -50,13 +54,17 @@ namespace APIMoiFood.Services.ReviewService
             var reviews = await _context.Reviews
                 .Where(r => r.UserId == userId)
                 .Select(r => new 
-                { 
+                {
                     r.ReviewId,
                     r.UserId,
+                    FullName = r.User.FullName,
+                    Phone = r.User.Phone,
                     Food = new
                     {
                         foodId = r.Food.FoodId,
                         foodName = r.Food.Name,
+                        FoodImageUrl = r.Food!.ImageUrl,
+                        Price = r.Food.Price,
                     },
                     r.Rating,
                     r.Comment,
@@ -70,13 +78,17 @@ namespace APIMoiFood.Services.ReviewService
             var review = await _context.Reviews
                 .Where(r => r.UserId == userId && r.FoodId == foodId)
                 .Select(r => new 
-                { 
+                {
                     r.ReviewId,
                     r.UserId,
+                    FullName = r.User.FullName,
+                    Phone = r.User.Phone,
                     Food = new
                     {
                         foodId = r.Food.FoodId,
                         foodName = r.Food.Name,
+                        FoodImageUrl = r.Food!.ImageUrl,
+                        Price = r.Food.Price,
                     },
                     r.Rating,
                     r.Comment,
@@ -152,17 +164,17 @@ namespace APIMoiFood.Services.ReviewService
             };
         }
 
-        public async Task<dynamic> FilterReviews(int? foodId, int? userId,
+        public async Task<dynamic> FilterReviews(string? foodName, string? fullName,
                                          int? minRating, int? maxRating,
                                          DateTime? fromDate, DateTime? toDate)
         {
             var query = _context.Reviews.AsQueryable();
 
-            if (foodId.HasValue)
-                query = query.Where(r => r.FoodId == foodId);
+            if (!string.IsNullOrEmpty(foodName))
+                query = query.Where(r => r.User != null && r.Food.Name.ToLower().Contains(foodName.ToLower()));
 
-            if (userId.HasValue)
-                query = query.Where(r => r.UserId == userId);
+            if (!string.IsNullOrEmpty(fullName))
+                query = query.Where(r => r.User != null && r.User.FullName.ToLower().Contains(fullName.ToLower()));
 
             if (minRating.HasValue)
                 query = query.Where(r => r.Rating >= minRating);
@@ -183,8 +195,16 @@ namespace APIMoiFood.Services.ReviewService
                 .Select(r => new
                 {
                     r.ReviewId,
-                    User = new { r.UserId, r.User!.FullName },
-                    Food = new { r.FoodId, r.Food!.Name },
+                    r.UserId,
+                    FullName = r.User.FullName,
+                    Phone = r.User.Phone,
+                    Food = new
+                    {
+                        foodId = r.Food.FoodId,
+                        foodName = r.Food.Name,
+                        FoodImageUrl = r.Food!.ImageUrl,
+                        Price = r.Food.Price,
+                    },
                     r.Rating,
                     r.Comment,
                     r.CreatedAt
