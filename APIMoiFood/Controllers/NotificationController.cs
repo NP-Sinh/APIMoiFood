@@ -36,6 +36,21 @@ namespace APIMoiFood.Controllers
             var result = await _notificationService.MarkAllAsRead(userId);
             return Ok(result);
         }
+        [HttpGet("get-global-notification")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetGlobalNotifications()
+        {
+            var result = await _notificationService.GetGlobalNotifications();
+            return Ok(result);
+        }
+
+        [HttpGet("get-notification-by-user-id")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetNotificationsByUserId(int? userId)
+        {
+            var result = await _notificationService.GetNotificationsByUserId(userId);
+            return Ok(result);
+        }
 
         [HttpPost("admin/send-to-all")]
         [Authorize(Roles = "Admin")]

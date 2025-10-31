@@ -113,14 +113,12 @@ namespace APIMoiFood.Models.Mapping
             // Notification mapping
             CreateMap<Notification, NotificationMap>().ReverseMap();
             CreateMap<Notification, UserNotificationDto>()
-            .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => false))
             .ReverseMap();
 
             // Chung
             CreateMap<GlobalNotification, UserNotificationDto>()
                 .ForMember(dest => dest.NotificationId, opt => opt.MapFrom(src => src.GlobalNotificationId))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => (bool?)null))
-                .ForMember(dest => dest.IsGlobal, opt => opt.MapFrom(src => true))
                 .ReverseMap();
 
 

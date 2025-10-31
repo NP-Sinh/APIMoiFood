@@ -8,6 +8,5 @@
         public string NotificationType { get; set; }
         public bool? IsRead { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public bool IsGlobal { get; set; }
     }
 }

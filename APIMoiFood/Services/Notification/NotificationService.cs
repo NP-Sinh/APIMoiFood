@@ -20,6 +20,8 @@ namespace APIMoiFood.Services.NotificationService
         Task<dynamic> MarkAsRead(int userId, int notificationId);
         Task<dynamic> MarkAllAsRead(int userId);
         // Admin
+        Task<dynamic> GetGlobalNotifications();
+        Task<dynamic> GetNotificationsByUserId(int? userId);
         Task<dynamic> SendGlobalNotification(string title, string message, string type);
         Task<dynamic> SendNotification(int userId, string title, string message, string type);
         Task<dynamic> Delete(int id);
@@ -50,7 +52,6 @@ namespace APIMoiFood.Services.NotificationService
                     NotificationType = n.NotificationType,
                     IsRead = n.IsRead,
                     CreatedAt = n.CreatedAt,
-                    IsGlobal = false
                 })
                 .ToListAsync();
 
@@ -65,7 +66,6 @@ namespace APIMoiFood.Services.NotificationService
                     NotificationType = g.NotificationType,
                     IsRead = null,
                     CreatedAt = g.CreatedAt,
-                    IsGlobal = true
                 })
                 .ToListAsync();
 
@@ -99,6 +99,46 @@ namespace APIMoiFood.Services.NotificationService
             return new { Message = "All notifications marked as read successfully." };
         }
         // admin
+        public async Task<dynamic> GetGlobalNotifications()
+        {
+            var query = await _context.GlobalNotifications
+                .Select(x => new
+                {
+                    GlobalNotificationId = x.GlobalNotificationId,
+                    Title = x.Title,
+                    Message = x.Message,
+                    NotificationType = x.NotificationType,
+                    CreatedAt = x.CreatedAt,
+                })
+                .ToListAsync();
+            return query;
+        }
+        public async Task<dynamic> GetNotificationsByUserId(int? userId)
+        {
+            var query = _context.Notifications.AsQueryable();
+
+            if (userId.HasValue)
+            {
+                query = query.Where(q => q.UserId == userId);
+            }
+
+            var result = await query
+                .Select(x => new
+                {
+                    NotificationId = x.NotificationId,
+                    Title = x.Title,
+                    UserId = x.UserId,
+                    Message = x.Message,
+                    NotificationType = x.NotificationType,
+                    IsRead = x.IsRead,
+                    CreatedAt = x.CreatedAt,
+                })
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+
+            return result;
+        }
+
         public async Task<dynamic> SendGlobalNotification(string title, string message, string type)
         {
             var g = new GlobalNotification
