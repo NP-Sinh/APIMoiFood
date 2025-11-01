@@ -110,6 +110,7 @@ namespace APIMoiFood.Services.NotificationService
                     NotificationType = x.NotificationType,
                     CreatedAt = x.CreatedAt,
                 })
+                .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
             return query;
         }
@@ -128,6 +129,9 @@ namespace APIMoiFood.Services.NotificationService
                     NotificationId = x.NotificationId,
                     Title = x.Title,
                     UserId = x.UserId,
+                    FullName = x.User.FullName,
+                    Phone = x.User.Phone,
+                    Email = x.User.Email,
                     Message = x.Message,
                     NotificationType = x.NotificationType,
                     IsRead = x.IsRead,
