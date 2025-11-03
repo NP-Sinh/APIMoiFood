@@ -198,12 +198,20 @@ namespace APIMoiFood.Services.FoodService
 
                 if (data != null)
                 {
-                    if (!string.IsNullOrEmpty(data.ImageUrl))
+                    if (request.ImageUrl != null)
                     {
-                        CommonServices.DeleteFileIfExists(data.ImageUrl);
-                    } 
-                    _mapper.Map(request, data);
-                    data.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl!, "images/foods");
+                        if (!string.IsNullOrEmpty(data.ImageUrl))
+                        {
+                            CommonServices.DeleteFileIfExists(data.ImageUrl);
+                        }
+
+                        data.ImageUrl = await CommonServices.CompressedImage(request.ImageUrl, "images/foods");
+                    }
+                    data.Name = request.Name;
+                    data.Description = request.Description;
+                    data.Price = request.Price;
+                    data.CategoryId = request.CategoryId ?? data.CategoryId;
+                    data.IsAvailable = request.IsAvailable ?? data.IsAvailable;
                     data.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
