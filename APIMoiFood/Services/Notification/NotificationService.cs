@@ -150,7 +150,7 @@ namespace APIMoiFood.Services.NotificationService
                 Title = title,
                 Message = message,
                 NotificationType = type,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
             };
             await _context.GlobalNotifications.AddAsync(g);
             await _context.SaveChangesAsync();
