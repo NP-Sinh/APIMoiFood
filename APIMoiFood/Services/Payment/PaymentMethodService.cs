@@ -1,5 +1,6 @@
 ﻿using APIMoiFood.Models.DTOs.Payment;
 using APIMoiFood.Models.Entities;
+using APIMoiFood.Models.Mapping;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,7 @@ namespace APIMoiFood.Services.PaymentMethodService
         Task<dynamic> GetAllPaymentMethods();
         Task<dynamic> GetPaymentMethodById(int methodId);
         Task<dynamic> Modify(int id, PaymentMethodRequest request);
-        //Task<dynamic> SetActiveStatus(int id, bool isActive);
+        Task<dynamic> delete(int id);
     }
     public class PaymentMethodService : IPaymentMethodService
     {
@@ -21,6 +22,7 @@ namespace APIMoiFood.Services.PaymentMethodService
             _context = context;
             _mapper = mapper;
         }
+
         public async Task<dynamic> GetAllPaymentMethods()
         {
             var methods = await _context.PaymentMethods
@@ -68,6 +70,19 @@ namespace APIMoiFood.Services.PaymentMethodService
             {
                 return new { Message = ex.Message };
             }
+        }
+        public async Task<dynamic> delete(int id)
+        {
+            var query = await _context.PaymentMethods.FindAsync(id); 
+
+            _context.Remove(query!);
+            await _context.SaveChangesAsync();
+
+            return new
+            {
+                StatusCode = 200,
+                Message = "Xoá thành công",
+            };
         }
     }
 }

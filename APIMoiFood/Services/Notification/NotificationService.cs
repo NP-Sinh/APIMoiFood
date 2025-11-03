@@ -171,7 +171,7 @@ namespace APIMoiFood.Services.NotificationService
                 Message = message,
                 NotificationType = type,
                 IsRead = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _context.Notifications.AddAsync(n);
             await _context.SaveChangesAsync();

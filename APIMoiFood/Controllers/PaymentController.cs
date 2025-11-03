@@ -49,6 +49,12 @@ namespace APIMoiFood.Controllers
                 return NotFound("Phương thức thanh toán không tồn tại!");
             return Ok(result);
         }
+        [HttpPost("delete-payment-method")]
+        public async Task<IActionResult> DeletePaymentMethod(int id)
+        {
+            var result = await _paymentMethodService.delete(id);
+            return Ok(result);
+        }
         [HttpPost("momo-ipn")]
         public async Task<IActionResult> MomoIpn([FromBody] MomoIpnRequest request)
         {
