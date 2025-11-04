@@ -82,10 +82,17 @@ namespace APIMoiFood.Services.NotificationService
             var notification = await _context.Notifications
                 .FirstOrDefaultAsync(n => n.NotificationId == notificationId && n.UserId == userId);
 
-            notification.IsRead = true;
+            if (notification == null)
+            {
+                return new { statusCode = 404, message = "Không tìm thấy thông báo." };
+            }
+
+            notification.IsRead = true; 
             await _context.SaveChangesAsync();
-            return new { Message = "Notification marked as read successfully." };
+
+            return new { statusCode = 200, message = "Đánh dấu đã đọc thành công." };
         }
+
         public async Task<dynamic> MarkAllAsRead(int userId)
         {
             var notifications = await _context.Notifications

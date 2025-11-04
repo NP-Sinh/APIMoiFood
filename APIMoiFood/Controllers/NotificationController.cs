@@ -23,7 +23,7 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
         [HttpPost("mark-as-read")]
-        public async Task<IActionResult> MarkAsRead(int notificationId)
+        public async Task<IActionResult> MarkAsRead([FromQuery] int notificationId)
         {
             int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var result = await _notificationService.MarkAsRead(userId, notificationId);
