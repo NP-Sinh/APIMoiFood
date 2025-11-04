@@ -79,7 +79,7 @@ namespace APIMoiFood.Services.PaymentMethodService
             await _context.SaveChangesAsync();
 
             return new
-            {
+            {  
                 StatusCode = 200,
                 Message = "Xoá thành công",
             };
