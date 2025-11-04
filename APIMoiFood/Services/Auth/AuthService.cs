@@ -63,7 +63,6 @@ namespace APIMoiFood.Services.AuthService
                 Data = _mapper.Map<UserMap>(user)
             };
         }
-
         public async Task<dynamic?> Login(LoginRequest request)
         {
             var user = await _context.Users
@@ -73,6 +72,18 @@ namespace APIMoiFood.Services.AuthService
 
             if (user == null || !CommonServices.VerifyPassword(request.Password, user.PasswordHash))
                 return null;
+
+            if (user.IsActive != true)
+            {
+
+                return new { ErrorMessage = "Tài khoản của bạn đã bị khóa." };
+            }
+
+            if (user.Role != "User")
+            {
+
+                return new { ErrorMessage = "Bạn không có quyền đăng nhập vào ứng dụng này." };
+            }
 
             var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "User");
             var refreshToken = _jwtService.GenerateRefreshToken();
@@ -86,7 +97,7 @@ namespace APIMoiFood.Services.AuthService
                 TokenExpiry = DateTime.UtcNow.AddHours(24),
                 RefreshToken = refreshEntity.RefreshToken1,
                 RefreshTokenExpiry = refreshEntity.ExpiryDate,
-                 Role = user.Role,
+                Role = user.Role,
             };
         }
 
