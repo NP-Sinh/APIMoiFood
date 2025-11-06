@@ -37,6 +37,21 @@ namespace APIMoiFood.Controllers
             var result = await _orderService.GetOrderDetails(userId, orderId);
             return Ok(result);
         }
+        [HttpPost("confirm-order")]
+        public async Task<IActionResult> ConfirmReceived(int orderId)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _orderService.ConfirmReceived(userId, orderId);
+            return Ok(result);
+        }
+        [HttpPost("cancel-order")]
+        public async Task<IActionResult> CancelOrder(int orderId)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _orderService.CancelOrder(userId, orderId);
+            return Ok(result);
+        }
+
         [HttpGet("get-all-order")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllOrders(string? status)

@@ -79,12 +79,6 @@ namespace APIMoiFood.Services.AuthService
                 return new { ErrorMessage = "Tài khoản của bạn đã bị khóa." };
             }
 
-            if (user.Role != "User")
-            {
-
-                return new { ErrorMessage = "Bạn không có quyền đăng nhập vào ứng dụng này." };
-            }
-
             var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "User");
             var refreshToken = _jwtService.GenerateRefreshToken();
             var refreshEntity = AddRefreshToken(user.UserId, refreshToken);
@@ -100,6 +94,38 @@ namespace APIMoiFood.Services.AuthService
                 Role = user.Role,
             };
         }
+        public async Task<dynamic?> LoginAdmin(LoginRequest request)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u =>
+                    u.Username == request.UsernameOrEmail ||
+                    u.Email == request.UsernameOrEmail);
+
+            if (user == null || !CommonServices.VerifyPassword(request.Password, user.PasswordHash))
+                return null;
+
+            if (user.IsActive != true)
+                return new { ErrorMessage = "Tài khoản của bạn đã bị khóa." };
+
+            if (user.Role == "User")
+                return new { ErrorMessage = "Tài khoản người dùng không được phép đăng nhập trang quản trị." };
+
+            var jwtToken = _jwtService.GenerateToken(user.UserId, user.Username, user.Role ?? "Admin");
+            var refreshToken = _jwtService.GenerateRefreshToken();
+            var refreshEntity = AddRefreshToken(user.UserId, refreshToken);
+
+            await _context.SaveChangesAsync();
+
+            return new
+            {
+                Token = jwtToken,
+                TokenExpiry = DateTime.UtcNow.AddHours(24),
+                RefreshToken = refreshEntity.RefreshToken1,
+                RefreshTokenExpiry = refreshEntity.ExpiryDate,
+                Role = user.Role,
+            };
+        }
+
 
         public async Task<dynamic?> ForgotPasswordAsync(ForgotPasswordRequest request)
         {

@@ -12,6 +12,8 @@ namespace APIMoiFood.Services.OrderService
         Task<dynamic> GetOrdersByUserId(int userId, string orderStatus);
         Task<dynamic> GetOrderDetails(int userId, int orderId);
         Task<dynamic> ConfirmReceived(int userId, int orderId);
+        Task<dynamic> CancelOrder(int userId, int orderId);
+
 
 
         // Admin
@@ -192,8 +194,27 @@ namespace APIMoiFood.Services.OrderService
                 .FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
 
             order.OrderStatus = "Completed";
+            order.UpdatedAt = DateTime.Now;
 
-            if(order.Payments.Any(p => p.Method.Name == "COD"))
+            await _context.SaveChangesAsync();
+            return new
+            {
+                StatusCode = 200,
+                Message = "Xác nhận đã hủy thành công",
+                OrderId = order.OrderId,
+                OrderStatus = order.OrderStatus, 
+                PaymentStatus = order.PaymentStatus
+            };
+        }
+        public async Task<dynamic> CancelOrder(int userId, int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Payments).ThenInclude(p => p.Method)
+                .FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
+
+            order.OrderStatus = "Cancelled";
+
+            if (order.Payments.Any(p => p.Method.Name == "COD"))
             {
                 order.PaymentStatus = "Paid";
                 foreach (var p in order.Payments)
@@ -209,7 +230,7 @@ namespace APIMoiFood.Services.OrderService
                 StatusCode = 200,
                 Message = "Xác nhận đã nhận hàng thành công",
                 OrderId = order.OrderId,
-                OrderStatus = order.OrderStatus, 
+                OrderStatus = order.OrderStatus,
                 PaymentStatus = order.PaymentStatus
             };
         }
