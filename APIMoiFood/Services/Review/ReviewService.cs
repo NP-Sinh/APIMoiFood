@@ -11,6 +11,7 @@ namespace APIMoiFood.Services.ReviewService
         Task<dynamic> Delete(int userId, int reviewId);
         Task<dynamic> GetHistoryByUserId(int userId);
         Task<dynamic> GetReviewByFoodUserId(int userId, int foodId);
+        Task<dynamic> GetReviewsByFoodId(int foodId);
         // Admin
         Task<dynamic> GetReviewAll();
         Task<dynamic> DeleteByAdmin(int reviewId);
@@ -71,6 +72,27 @@ namespace APIMoiFood.Services.ReviewService
                     r.CreatedAt
                 })
                 .ToListAsync();
+            return reviews;
+        }
+        public async Task<dynamic> GetReviewsByFoodId(int foodId)
+        {
+            var reviews = await _context.Reviews
+                .Where(r => r.FoodId == foodId)
+                .Include(r => r.User) 
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new
+                {
+                    r.ReviewId,
+                    r.Rating,
+                    r.Comment,
+                    r.CreatedAt,
+                    User = new 
+                    {
+                        r.User.FullName,
+                    }
+                })
+                .ToListAsync();
+
             return reviews;
         }
         public async Task<dynamic> GetReviewByFoodUserId(int userId, int foodId)

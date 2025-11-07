@@ -17,13 +17,22 @@ namespace APIMoiFood.Controllers
             _reviewService = reviewService;
         }
         [HttpPost("modify")]
+        [Authorize]
         public async Task<IActionResult> Modify([FromBody] ReviewRequest request)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var result = await _reviewService.Modify(userId, request);
             return Ok(result);
         }
+        [HttpGet("get-by-food/{foodId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetReviewsByFood(int foodId)
+        {
+            var result = await _reviewService.GetReviewsByFoodId(foodId);
+            return Ok(result);
+        }
         [HttpGet("get-history-by-user")]
+        [Authorize]
         public async Task<IActionResult> GetHistoryByUser()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -31,6 +40,7 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
         [HttpPost("delete-review")]
+        [Authorize]
         public async Task<IActionResult> Delete(int reviewId)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -45,6 +55,7 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
         [HttpGet("get-review-by-food-user")]
+        [Authorize]
         public async Task<IActionResult> GetReviewByFoodUser(int foodId)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
