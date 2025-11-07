@@ -12,7 +12,7 @@ namespace APIMoiFood.Services.FoodService
         Task<dynamic> Modify(FoodRequest request, int id);
         Task<dynamic> GetAll(bool? isAvailable, bool? isActive);
         Task<dynamic> GetByCategory(int categoryId, bool? isAvailable, bool? isActive);
-        Task<dynamic> Search(string keyword);
+        Task<dynamic> Search(string keyword, bool? isAvailable, bool? isActive);
         Task<dynamic?> GetById(int id);
         Task<dynamic> SetActiveStatus(int id, bool isActive);
         Task<dynamic> SetAvailableStatus(int id, bool isAvailable);
@@ -129,36 +129,23 @@ namespace APIMoiFood.Services.FoodService
                 Data = result
             };
         }
-        public async Task<dynamic> Search(string keyword)
+
+        public async Task<dynamic> Search(string keyword, bool? isAvailable, bool? isActive)
         {
-            if (string.IsNullOrWhiteSpace(keyword))
+            IQueryable<Food> query = _context.Foods
+                                     .AsNoTracking()
+                                     .Include(f => f.Category);
+
+            if (isAvailable.HasValue)
             {
-                return await _context.Foods
-                    .AsNoTracking()
-                    .Select(f => new
-                    {
-                        f.FoodId,
-                        f.Name,
-                        f.Description,
-                        f.Price,
-                        f.ImageUrl,
-                        Category = f.Category != null ? new
-                        {
-                            f.Category.CategoryId,
-                            f.Category.Name
-                        } : null,
-                        f.IsAvailable,
-                        f.IsActive,
-                        f.CreatedAt,
-                        f.UpdatedAt
-                    })
-                    .ToListAsync();
+                query = query.Where(f => f.IsAvailable == isAvailable.Value);
+            }
+            if (isActive.HasValue)
+            {
+                query = query.Where(f => f.IsActive == isActive.Value);
             }
 
-            keyword = CommonServices.RemoveDiacritics(keyword.Trim().ToLower());
-
-            var foods = await _context.Foods
-                .AsNoTracking()
+            var foods = await query
                 .Select(f => new
                 {
                     f.FoodId,
@@ -176,7 +163,15 @@ namespace APIMoiFood.Services.FoodService
                     f.CreatedAt,
                     f.UpdatedAt
                 })
-                .ToListAsync();
+                .ToListAsync(); 
+
+
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return foods;
+            }
+
+            keyword = CommonServices.RemoveDiacritics(keyword.Trim().ToLower());
 
             return foods
                 .Where(f =>
@@ -186,7 +181,6 @@ namespace APIMoiFood.Services.FoodService
                     (f.Category != null && CommonServices.RemoveDiacritics(f.Category.Name.ToLower()).Contains(keyword))
                 )
                 .ToList();
-
         }
 
         public async Task<dynamic> Modify(FoodRequest request, int id)

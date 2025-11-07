@@ -46,9 +46,9 @@ namespace APIMoiFood.Controllers
             return Ok(result);
         }
         [HttpGet("search")]
-        public async Task<IActionResult> Search(string keyword)
+        public async Task<IActionResult> Search(string keyword, bool? isAvailable, bool? isActive)
         {
-            var result = await _foodService.Search(keyword);
+            var result = await _foodService.Search(keyword, isAvailable, isActive);
             return Ok(result);
         }
 
