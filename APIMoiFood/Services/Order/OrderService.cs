@@ -186,22 +186,57 @@ namespace APIMoiFood.Services.OrderService
             }
         }
 
+        //public async Task<dynamic> ConfirmReceived(int userId, int orderId)
+        //{
+        //    var order = await _context.Orders
+        //        .Include(o => o.Payments).ThenInclude(p => p.Method)
+        //        .FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
+
+        //    order.OrderStatus = "Completed";
+        //    order.UpdatedAt = DateTime.Now;
+
+        //    await _context.SaveChangesAsync();
+        //    return new
+        //    {
+        //        StatusCode = 200,
+        //        Message = "Xác nhận đã hủy thành công",
+        //        OrderId = order.OrderId,
+        //        OrderStatus = order.OrderStatus, 
+        //        PaymentStatus = order.PaymentStatus
+        //    };
+        //}
+        // Tệp: Services/OrderService.cs
+
         public async Task<dynamic> ConfirmReceived(int userId, int orderId)
         {
             var order = await _context.Orders
-                .Include(o => o.Payments).ThenInclude(p => p.Method)
+                .Include(o => o.Payments)          
+                    .ThenInclude(p => p.Method) 
                 .FirstOrDefaultAsync(o => o.UserId == userId && o.OrderId == orderId);
+
+            if (order == null)
+                return new { StatusCode = 404, Message = "Không tìm thấy đơn hàng" };
 
             order.OrderStatus = "Completed";
             order.UpdatedAt = DateTime.Now;
 
+            var codPayment = order.Payments
+                .FirstOrDefault(p => p.Method.Name == "COD");
+
+            if (codPayment != null && codPayment.PaymentStatus == "Pending")
+            {
+                order.PaymentStatus = "Success";
+                codPayment.PaymentStatus = "Success";
+            }
+
             await _context.SaveChangesAsync();
+
             return new
             {
                 StatusCode = 200,
-                Message = "Xác nhận đã hủy thành công",
+                Message = "Xác nhận đã nhận hàng thành công",
                 OrderId = order.OrderId,
-                OrderStatus = order.OrderStatus, 
+                OrderStatus = order.OrderStatus,
                 PaymentStatus = order.PaymentStatus
             };
         }
