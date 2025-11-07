@@ -66,10 +66,18 @@ namespace APIMoiFood.Controllers
         {
             await _paymentService.HandleMomoIpnAsync(request);
 
+            //if (request.ResultCode == 0)
+            //    return Ok(new { success = true, orderId = request.OrderId, message = "Thanh toán MoMo thành công" });
+            //else
+            //    return BadRequest(new { success = false, orderId = request.OrderId, message = request.Message });
             if (request.ResultCode == 0)
-                return Ok(new { success = true, orderId = request.OrderId, message = "Thanh toán MoMo thành công" });
+            {
+                return Redirect("https://www.google.com");
+            }
             else
-                return BadRequest(new { success = false, orderId = request.OrderId, message = request.Message });
+            {
+                return Redirect("https://www.google.com/search?q=payment-failed");
+            }
         }
 
         [HttpGet("vnpay-ipn")]
@@ -85,9 +93,17 @@ namespace APIMoiFood.Controllers
         public async Task<IActionResult> VnPayReturn()
         {
             var result = await _paymentService.HandleVNPAYReturnAsync(Request.Query);
+            //if (result.IsSuccess)
+            //    return Ok(result);
+            //return BadRequest(result);
             if (result.IsSuccess)
-                return Ok(result);
-            return BadRequest(result);
+            {
+                return Redirect("https://www.google.com");
+            }
+            else
+            {
+                return Redirect("https://www.google.com/search?q=payment-failed");
+            }
         }
 
     }

@@ -47,6 +47,8 @@ namespace APIMoiFood.Services.OrderService
                 {
                     o.OrderId,
                     o.CreatedAt,
+                    o.DeliveryAddress,
+                    o.Note,
                     o.OrderStatus,
                     o.TotalAmount,
                     o.PaymentStatus,
@@ -79,6 +81,8 @@ namespace APIMoiFood.Services.OrderService
                         {
                             o.OrderId,
                             o.CreatedAt,
+                            o.DeliveryAddress,
+                            o.Note,
                             o.TotalAmount,
                             o.OrderStatus,        
                             o.PaymentStatus,
@@ -88,14 +92,9 @@ namespace APIMoiFood.Services.OrderService
                                 oi.Quantity,
                                 oi.Price,
                                 oi.Note,
-                                Food = new
-                                {
-                                    oi.Food.FoodId,
-                                    FoodName = oi.Food!.Name,
-                                    FoodImageUrl = oi.Food!.ImageUrl,
-                                    oi.Food.Price,
-                                    oi.Food.IsAvailable,
-                                }
+                                oi.Food.FoodId,
+                                FoodName = oi.Food!.Name,
+                                FoodImageUrl = oi.Food!.ImageUrl,
                             }),
                             Payments = o.Payments.Select(p => new
                             {
