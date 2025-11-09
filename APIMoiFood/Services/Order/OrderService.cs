@@ -205,7 +205,6 @@ namespace APIMoiFood.Services.OrderService
         //        PaymentStatus = order.PaymentStatus
         //    };
         //}
-        // Tệp: Services/OrderService.cs
 
         public async Task<dynamic> ConfirmReceived(int userId, int orderId)
         {
